@@ -1,10 +1,15 @@
 package main
 
-import "context"
+import (
+	"auth_service/pkg/logger"
+	"context"
+)
 
 func main() {
 	ctx := context.Background()
-	//TODO logger
+
+	authLogger := logger.NewLogger()
+	ctx = context.WithValue(ctx, logger.LoggerKey, authLogger)
 
 	//TODO config
 
