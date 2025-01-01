@@ -1,7 +1,7 @@
 package config
 
 import (
-	"auth_service/pkg/DB/postgres"
+	"auth_service/pkg/DataBase/postgres"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 

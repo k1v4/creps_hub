@@ -13,7 +13,7 @@ type DBConfig struct {
 	Password string `env:"POSTGRES_PASSWORD" env-default:"123"`
 	Host     string `env:"POSTGRES_HOST" env-default:"localhost"`
 	Port     string `env:"POSTGRES_PORT" env-default:"5432"`
-	DbName   string `env:"POSTGRES_DB" env-default:"users"`
+	DbName   string `env:"POSTGRES_DB" env-default:"auth_service"`
 }
 
 type DB struct {
