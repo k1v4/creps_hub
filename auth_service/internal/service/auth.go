@@ -103,6 +103,6 @@ func (s *AuthService) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
-	
+
 	return isAdmin, nil
 }

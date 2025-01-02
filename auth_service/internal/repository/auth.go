@@ -28,7 +28,7 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 		PlaceholderFormat(sq.Dollar).
 		RunWith(a.db.Db).
 		QueryRow().
-		Scan(&result.ID, &result.Email, &result.PassHash)
+		Scan(&result.ID)
 	if err != nil {
 		return 0, fmt.Errorf("%s : %w", op, err)
 	}
@@ -40,6 +40,7 @@ func (a *AuthRepository) GetUser(ctx context.Context, email string) (*models.Use
 	const op = "repository.GetUser"
 
 	var result models.User
+	var isAdmin bool
 
 	err := sq.Select("*").
 		From("users").
@@ -47,7 +48,7 @@ func (a *AuthRepository) GetUser(ctx context.Context, email string) (*models.Use
 		PlaceholderFormat(sq.Dollar).
 		RunWith(a.db.Db).
 		QueryRow().
-		Scan(&result.ID, &result.Email, &result.PassHash)
+		Scan(&result.ID, &result.Email, &result.PassHash, &isAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("%s : %w", op, err)
 	}

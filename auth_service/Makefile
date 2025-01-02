@@ -1,4 +1,7 @@
-all: mig
+all: mig_up
 
-mig:
-	go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./tests/migrations --migrations-table=migrations_tests
+mig_up:
+	migrate -path migrations/ -database postgres://root:123@localhost:5432/auth_service?sslmode=disable up
+
+mig_down:
+	migrate -path migrations/ -database postgres://root:123@localhost:5432/auth_service?sslmode=disable down

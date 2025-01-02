@@ -4,9 +4,14 @@ import (
 	"auth_service/internal/config"
 	"auth_service/internal/repository"
 	"auth_service/internal/service"
+	"auth_service/internal/transport/grpc"
 	"auth_service/pkg/DataBase/postgres"
 	"auth_service/pkg/logger"
 	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -15,8 +20,8 @@ func main() {
 	authLogger := logger.NewLogger()
 	ctx = context.WithValue(ctx, logger.LoggerKey, authLogger)
 
-	//TODO добавить время жизни токена в кфг
 	cfg := config.MustLoadConfig()
+	fmt.Println(cfg)
 	if cfg == nil {
 		panic("load config fail")
 	}
@@ -28,13 +33,34 @@ func main() {
 		panic(err)
 	}
 
-	repo := repository.NewAuthRepository(storage)
+	authRepo := repository.NewAuthRepository(storage)
 
-	service := service.NewAuthService(repo, repo, repo, 0)
+	authServ := service.NewAuthService(authRepo, authRepo, authRepo, 0)
 
-	//TODO server
+	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, authServ)
+	if err != nil {
+		authLogger.Error(ctx, err.Error())
+		return
+	}
 
-	//TODO graceful shutdown
+	graceCh := make(chan os.Signal, 1)
+	signal.Notify(graceCh, syscall.SIGINT, syscall.SIGTERM)
+
+	// запуск сервера
+	go func() {
+		if err = grpcServer.Start(ctx); err != nil {
+			authLogger.Error(ctx, err.Error())
+		}
+	}()
+
+	<-graceCh
+
+	err = grpcServer.Stop(ctx)
+	if err != nil {
+		authLogger.Error(ctx, err.Error())
+	}
+	authLogger.Info(ctx, "Server stopped")
+	fmt.Println("Server stopped")
 
 	//TODO написать доки к функциям
 }
