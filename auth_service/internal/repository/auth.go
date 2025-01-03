@@ -2,10 +2,14 @@ package repository
 
 import (
 	"auth_service/internal/models"
+	"auth_service/pkg/DataBase"
 	"auth_service/pkg/DataBase/postgres"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 )
 
 type AuthRepository struct {
@@ -30,7 +34,12 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 		QueryRow().
 		Scan(&result.ID)
 	if err != nil {
-		return 0, fmt.Errorf("%s : %w", op, err)
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return 0, fmt.Errorf("%s: %w", op, DataBase.ErrUserExists)
+		}
+
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return result.ID, nil
@@ -50,7 +59,11 @@ func (a *AuthRepository) GetUser(ctx context.Context, email string) (*models.Use
 		QueryRow().
 		Scan(&result.ID, &result.Email, &result.PassHash, &isAdmin)
 	if err != nil {
-		return nil, fmt.Errorf("%s : %w", op, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return &models.User{}, fmt.Errorf("%s: %w", op, DataBase.ErrUserNotFound)
+		}
+
+		return &models.User{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &result, nil
@@ -69,7 +82,11 @@ func (a *AuthRepository) IsAdmin(ctx context.Context, id int64) (bool, error) {
 		QueryRow().
 		Scan(&isAdmin)
 	if err != nil {
-		return false, fmt.Errorf("%s : %w", op, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, fmt.Errorf("%s: %w", op, DataBase.ErrUserNotFound)
+		}
+
+		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return isAdmin, nil
@@ -87,7 +104,11 @@ func (a *AuthRepository) GetApp(ctx context.Context, id int64) (*models.App, err
 		QueryRow().
 		Scan(&app.ID, &app.Name, &app.Secret)
 	if err != nil {
-		return nil, fmt.Errorf("%s : %w", op, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return &models.App{}, fmt.Errorf("%s: %w", op, DataBase.ErrAppNotFound)
+		}
+
+		return &models.App{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &app, nil

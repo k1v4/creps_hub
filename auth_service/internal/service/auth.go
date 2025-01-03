@@ -51,7 +51,10 @@ func (s *AuthService) Login(ctx context.Context, email string, password string, 
 
 	user, err := s.UsProv.GetUser(ctx, email)
 	if err != nil {
-		//TODO доп проверки
+		if errors.Is(err, DataBase.ErrUserNotFound) {
+			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+		}
+
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
@@ -61,7 +64,6 @@ func (s *AuthService) Login(ctx context.Context, email string, password string, 
 
 	app, err := s.AppProv.GetApp(ctx, appId)
 	if err != nil {
-		//TODO доп проверки
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
@@ -83,7 +85,9 @@ func (s *AuthService) Register(ctx context.Context, email string, password strin
 
 	id, err := s.UsSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
-		//TODO доп проверки
+		if errors.Is(err, DataBase.ErrUserExists) {
+			return 0, fmt.Errorf("%s: %w", op, ErrUserExist)
+		}
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -97,7 +101,6 @@ func (s *AuthService) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	isAdmin, err := s.UsProv.IsAdmin(ctx, userID)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrAppNotFound) {
-
 			return false, fmt.Errorf("%s: %w", op, ErrInvalidAppId)
 		}
 

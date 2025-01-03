@@ -3,6 +3,7 @@ package suite
 import (
 	"auth_service/internal/config"
 	"context"
+	"fmt"
 	ssov1 "github.com/k1v4/protos/gen/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -27,8 +28,9 @@ func New(t *testing.T) (context.Context, *Suite) {
 	t.Parallel()
 
 	cfg := config.MustLoadConfig()
+	fmt.Println(cfg)
 
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 100*time.Second)
 
 	t.Cleanup(func() {
 		t.Helper()

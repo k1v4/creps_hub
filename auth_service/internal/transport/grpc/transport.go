@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"auth_service/internal/service"
 	"context"
 	"errors"
 	"fmt"
@@ -48,9 +49,9 @@ func (s *AuthService) Login(ctx context.Context, req *ssov1.LoginRequest) (*ssov
 
 	token, err := s.service.Login(ctx, email, password, appId)
 	if err != nil {
-		//if errors.Is(err, s.ErrInvalidCredentials) {
-		//	return nil, status.Error(codes.InvalidArgument, "invalid credentials")
-		//}
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
+		}
 		fmt.Println(err)
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
@@ -71,10 +72,10 @@ func (s *AuthService) Register(ctx context.Context, req *ssov1.RegisterRequest) 
 
 	register, err := s.service.Register(ctx, email, password)
 	if err != nil {
-		//if errors.Is(err, auth.ErrUserExist) {
-		//	return nil, status.Error(codes.InvalidArgument, "user already exists")
-		//}
-		
+		if errors.Is(err, service.ErrUserExist) {
+			return nil, status.Error(codes.InvalidArgument, "user already exists")
+		}
+
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
 

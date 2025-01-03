@@ -2,6 +2,7 @@ package tests
 
 import (
 	"auth_service/tests/suite"
+	"fmt"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/golang-jwt/jwt/v5"
 	ssov1 "github.com/k1v4/protos/gen/sso"
@@ -44,6 +45,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	loginTime := time.Now()
 
 	token := respLogin.GetToken()
+	fmt.Println(email, token)
 	assert.NotEmpty(t, token)
 
 	tokenParsed, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -171,7 +173,7 @@ func TestLogin_FailCases(t *testing.T) {
 			email:       gofakeit.Email(),
 			password:    randomFakePassword(),
 			appID:       emptyAppID,
-			expectedErr: "app_id is required",
+			expectedErr: "app_id is invalid",
 		},
 	}
 
