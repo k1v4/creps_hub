@@ -51,6 +51,9 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	tokenParsed, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(appSecret), nil
 	})
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
 	require.NoError(t, err)
 
 	claims, ok := tokenParsed.Claims.(jwt.MapClaims)

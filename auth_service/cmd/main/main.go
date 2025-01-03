@@ -35,7 +35,7 @@ func main() {
 
 	authRepo := repository.NewAuthRepository(storage)
 
-	authServ := service.NewAuthService(authRepo, authRepo, authRepo, 0)
+	authServ := service.NewAuthService(authRepo, authRepo, authRepo, cfg.TokenTTL)
 
 	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, authServ)
 	if err != nil {
