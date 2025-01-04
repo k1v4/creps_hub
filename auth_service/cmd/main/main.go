@@ -21,7 +21,6 @@ func main() {
 	ctx = context.WithValue(ctx, logger.LoggerKey, authLogger)
 
 	cfg := config.MustLoadConfig()
-	fmt.Println(cfg)
 	if cfg == nil {
 		panic("load config fail")
 	}
