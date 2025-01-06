@@ -60,8 +60,6 @@ func (s *AuthService) Login(ctx context.Context, req *ssov1.LoginRequest) (*ssov
 }
 
 func (s *AuthService) Register(ctx context.Context, req *ssov1.RegisterRequest) (*ssov1.RegisterResponse, error) {
-	fmt.Println("transport.Register")
-
 	email := req.GetEmail()
 	if len(email) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "email is required")

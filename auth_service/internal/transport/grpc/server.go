@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"auth_service/internal/transport/CORS"
 	"auth_service/pkg/logger"
 	"context"
 	"fmt"
@@ -49,9 +50,11 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*S
 		return nil, fmt.Errorf("failed to register gateway: %w", err)
 	}
 
+	corsHandler := CORS.CorsSettings().Handler(gwmux)
+
 	gwServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", restPort),
-		Handler: gwmux,
+		Handler: corsHandler,
 	}
 
 	return &Server{grpcServer, gwServer, listener}, nil
