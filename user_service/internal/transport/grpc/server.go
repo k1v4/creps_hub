@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	ssov1 "github.com/k1v4/protos/gen/sso"
+	userv1 "github.com/k1v4/protos/gen/user"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -34,7 +35,7 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*S
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	ssov1.RegisterAuthServer(grpcServer, NewUserService(service))
+	userv1.RegisterUserServiceServer(grpcServer, NewUserService(service))
 
 	conn, err := grpc.NewClient(
 		fmt.Sprintf(":%d", grpcPort),

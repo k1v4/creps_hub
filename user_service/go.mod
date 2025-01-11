@@ -6,7 +6,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/k1v4/protos v0.0.6
+	github.com/k1v4/protos v0.0.7
 	github.com/lib/pq v1.10.9
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.10.0
