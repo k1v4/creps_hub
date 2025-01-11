@@ -22,7 +22,7 @@ type UserService struct {
 
 type UserProvider interface {
 	UpdateUser(ctx context.Context, id int64, name, surname, username string) (*models.User, error)
-	GetUser(ctx context.Context, username string) (*models.User, error)
+	GetUser(ctx context.Context, id int64) (*models.User, error)
 }
 
 type UserSaver interface {
@@ -57,10 +57,10 @@ func (us *UserService) AddUser(ctx context.Context, id int64, name, surname, use
 	return userId, nil
 }
 
-func (us *UserService) GetUser(ctx context.Context, username string) (*models.User, error) {
+func (us *UserService) GetUser(ctx context.Context, id int64) (*models.User, error) {
 	const op = "UserService.GetUser"
 
-	user, err := us.UsPr.GetUser(ctx, username)
+	user, err := us.UsPr.GetUser(ctx, id)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, err

@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

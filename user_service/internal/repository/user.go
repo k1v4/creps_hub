@@ -92,14 +92,14 @@ func (u *UserRepository) DeleteUser(ctx context.Context, id int64) (bool, error)
 	return true, nil
 }
 
-func (u *UserRepository) GetUser(ctx context.Context, username string) (*models.User, error) {
+func (u *UserRepository) GetUser(ctx context.Context, id int64) (*models.User, error) {
 	const op = "UserRepository.GetUser"
 
 	var user models.User
 
 	err := sq.Select("*").
 		From("users").
-		Where(sq.Eq{"username": username}).
+		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(u.db.Db).
 		QueryRow().
