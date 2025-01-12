@@ -46,6 +46,8 @@ func NewAuthService(usSaver UserSaver, usProv UserProvider, appProv AppProvider,
 	}
 }
 
+// Login checks is user already register and sent access-token
+// if user is not exist, Login will return error
 func (s *AuthService) Login(ctx context.Context, email string, password string, appId int64) (string, error) {
 	const op = "service.Login"
 
@@ -75,6 +77,8 @@ func (s *AuthService) Login(ctx context.Context, email string, password string, 
 	return token, nil
 }
 
+// Register adds new user to app
+// If user with given email already exists, returns error.
 func (s *AuthService) Register(ctx context.Context, email string, password string) (int64, error) {
 	const op = "service.Register"
 

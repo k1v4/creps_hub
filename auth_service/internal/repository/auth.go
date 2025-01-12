@@ -20,6 +20,7 @@ func NewAuthRepository(db *postgres.DB) *AuthRepository {
 	return &AuthRepository{db}
 }
 
+// SaveUser adds new user to Database
 func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []byte) (int64, error) {
 	const op = "repository.SaveUser"
 
@@ -45,6 +46,7 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 	return result.ID, nil
 }
 
+// GetUser takes user from Database
 func (a *AuthRepository) GetUser(ctx context.Context, email string) (*models.User, error) {
 	const op = "repository.GetUser"
 
@@ -69,6 +71,7 @@ func (a *AuthRepository) GetUser(ctx context.Context, email string) (*models.Use
 	return &result, nil
 }
 
+// IsAdmin checks is user admin in Database
 func (a *AuthRepository) IsAdmin(ctx context.Context, id int64) (bool, error) {
 	const op = "repository.IsAdmin"
 
@@ -92,6 +95,7 @@ func (a *AuthRepository) IsAdmin(ctx context.Context, id int64) (bool, error) {
 	return isAdmin, nil
 }
 
+// GetApp takes app Id from Database
 func (a *AuthRepository) GetApp(ctx context.Context, id int64) (*models.App, error) {
 	const op = "repository.App"
 	var app models.App

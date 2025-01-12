@@ -22,6 +22,10 @@ type Server struct {
 	listener   net.Listener
 }
 
+// NewServer create new servers for grpc and rest.
+// grpcPort - port for grpc.
+// restPort - port for rest.
+// service - interface of service layer.
 func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
@@ -50,7 +54,7 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*S
 		return nil, fmt.Errorf("failed to register gateway: %w", err)
 	}
 
-	corsHandler := CORS.CorsSettings().Handler(gwmux)
+	corsHandler := CORS.Settings().Handler(gwmux)
 
 	gwServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", restPort),
@@ -60,6 +64,7 @@ func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*S
 	return &Server{grpcServer, gwServer, listener}, nil
 }
 
+// Start runs servers
 func (s *Server) Start(ctx context.Context) error {
 	eg := errgroup.Group{}
 
@@ -84,6 +89,7 @@ func (s *Server) Start(ctx context.Context) error {
 	return eg.Wait()
 }
 
+// Stop gracefully stops servers
 func (s *Server) Stop(ctx context.Context) error {
 	s.grpcServer.GracefulStop()
 
