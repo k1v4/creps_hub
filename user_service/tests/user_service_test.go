@@ -9,7 +9,7 @@ import (
 	"user_service/tests/suite"
 )
 
-func TestUserServiceAdd_HappyPath(t *testing.T) {
+func TestUserService_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
 
 	t.Logf("testing Add User Service")
@@ -48,4 +48,57 @@ func TestUserServiceAdd_HappyPath(t *testing.T) {
 	assert.Equal(t, true, respDelete.GetIsSuccessfully())
 }
 
-func TestUserServiceAdd_FailPath(t *testing.T) {}
+func TestUserServiceAdd_FailPath(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	tests := []struct {
+		id          int64
+		name        string
+		surname     string
+		username    string
+		expectedErr string
+	}{
+		{
+			id:          1,
+			name:        gofakeit.FirstName(),
+			surname:     gofakeit.LastName(),
+			username:    "",
+			expectedErr: "username is required",
+		},
+		{
+			id:          2,
+			name:        gofakeit.FirstName(),
+			surname:     "",
+			username:    gofakeit.Username(),
+			expectedErr: "surname is required",
+		},
+		{
+			id:          1,
+			name:        "",
+			surname:     gofakeit.LastName(),
+			username:    gofakeit.Username(),
+			expectedErr: "name is required",
+		},
+		{
+			id:          -1,
+			name:        gofakeit.FirstName(),
+			surname:     gofakeit.LastName(),
+			username:    gofakeit.Username(),
+			expectedErr: "userId is wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.UserClient.AddUser(ctx, &userv1.AddUserRequest{
+				UserId:   tt.id,
+				Name:     tt.name,
+				Surname:  tt.surname,
+				Username: tt.username,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectedErr)
+
+		})
+	}
+}
