@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"github.com/brianvoe/gofakeit/v6"
 	userv1 "github.com/k1v4/protos/gen/user"
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,7 @@ func TestUserService_HappyPath(t *testing.T) {
 func TestUserServiceAdd_FailPath(t *testing.T) {
 	ctx, st := suite.New(t)
 
+	//TODO дополнить тесты
 	tests := []struct {
 		id          int64
 		name        string
@@ -73,7 +75,7 @@ func TestUserServiceAdd_FailPath(t *testing.T) {
 			expectedErr: "surname is required",
 		},
 		{
-			id:          1,
+			id:          3,
 			name:        "",
 			surname:     gofakeit.LastName(),
 			username:    gofakeit.Username(),
@@ -88,6 +90,7 @@ func TestUserServiceAdd_FailPath(t *testing.T) {
 		},
 	}
 
+	t.Logf("testing Add User Service errors")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := st.UserClient.AddUser(ctx, &userv1.AddUserRequest{
@@ -99,6 +102,62 @@ func TestUserServiceAdd_FailPath(t *testing.T) {
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tt.expectedErr)
 
+		})
+	}
+}
+
+func TestUserServiceGet_FailPath(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	//TODO дополнить тесты
+	tests := []struct {
+		id          int64
+		expectedErr string
+	}{
+		{
+			id:          100001, // слишком большой несуществующий id
+			expectedErr: "user not found",
+		},
+		{
+			id:          -1,
+			expectedErr: "userId is wrong",
+		},
+	}
+
+	t.Logf("testing Get User Service errors")
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%d", tt.id), func(t *testing.T) {
+			_, err := st.UserClient.GetUser(ctx, &userv1.GetUserRequest{
+				UserId: tt.id,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectedErr)
+		})
+	}
+}
+
+func TestUserServiceDelete_FailPath(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	//TODO дополнить тесты
+	tests := []struct {
+		id          int64
+		expectedErr string
+	}{
+		{
+			id:          -1,
+			expectedErr: "userId is wrong",
+		},
+	}
+
+	t.Logf("testing Delete User Service errors")
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%d", tt.id), func(t *testing.T) {
+			_, err := st.UserClient.DeleteUser(ctx, &userv1.DeleteUserRequest{
+				UserId: tt.id,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectedErr)
 		})
 	}
 }
