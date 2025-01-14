@@ -17,15 +17,15 @@ import (
 func main() {
 	ctx := context.Background()
 
-	authLogger := logger.NewLogger()
-	ctx = context.WithValue(ctx, logger.LoggerKey, authLogger)
+	userLogger := logger.NewLogger()
+	ctx = context.WithValue(ctx, logger.LoggerKey, userLogger)
 
 	cfg := config.MustLoadConfig()
 	if cfg == nil {
 		panic("load config fail")
 	}
 
-	authLogger.Info(ctx, "read config successfully")
+	userLogger.Info(ctx, "read config successfully")
 
 	storage, err := postgres.New(cfg.DBConfig)
 	if err != nil {
@@ -38,7 +38,7 @@ func main() {
 
 	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, authServ)
 	if err != nil {
-		authLogger.Error(ctx, err.Error())
+		userLogger.Error(ctx, err.Error())
 		return
 	}
 
@@ -48,7 +48,7 @@ func main() {
 	// запуск сервера
 	go func() {
 		if err = grpcServer.Start(ctx); err != nil {
-			authLogger.Error(ctx, err.Error())
+			userLogger.Error(ctx, err.Error())
 		}
 	}()
 
@@ -56,9 +56,9 @@ func main() {
 
 	err = grpcServer.Stop(ctx)
 	if err != nil {
-		authLogger.Error(ctx, err.Error())
+		userLogger.Error(ctx, err.Error())
 	}
-	authLogger.Info(ctx, "Server stopped")
+	userLogger.Info(ctx, "Server stopped")
 	fmt.Println("Server stopped")
 
 	//TODO написать доки к функциям
