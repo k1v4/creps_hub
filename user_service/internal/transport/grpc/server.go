@@ -22,7 +22,7 @@ type Server struct {
 	listener   net.Listener
 }
 
-func NewServer(ctx context.Context, grpcPort, restPort int, service Service) (*Server, error) {
+func NewServer(ctx context.Context, grpcPort, restPort int, service IShoeService) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

@@ -9,7 +9,7 @@ import (
 	"user_service/internal/models"
 )
 
-type Service interface {
+type IUserService interface {
 	AddUser(ctx context.Context, id int64, name, surname, username string) (int64, error)
 	GetUser(ctx context.Context, id int64) (*models.User, error)
 	UpdateUser(ctx context.Context, id int64, name, surname, username string) (*models.User, error)
@@ -18,10 +18,10 @@ type Service interface {
 
 type UserService struct {
 	userv1.UnimplementedUserServiceServer
-	service Service
+	service IUserService
 }
 
-func NewUserService(svc Service) *UserService {
+func NewUserService(svc IUserService) *UserService {
 	return &UserService{
 		service: svc,
 	}

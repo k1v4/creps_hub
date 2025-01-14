@@ -120,7 +120,6 @@ func (s *ShoeRepository) GetShoes(ctx context.Context, userId int64) (*[]models.
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	defer rows.Close()
 	for rows.Next() {
 		var shoe models.Shoe
 		err = rows.Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
