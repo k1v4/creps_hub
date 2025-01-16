@@ -33,10 +33,12 @@ func main() {
 	}
 
 	userRepo := repository.NewUserRepository(storage)
+	shoeRepo := repository.NewShoeRepository(storage)
 
-	authServ := service.NewUserService(userRepo, userRepo, userRepo)
+	userServ := service.NewUserService(userRepo, userRepo, userRepo)
+	shoeServ := service.NewShoeService(shoeRepo)
 
-	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, authServ)
+	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, userServ, shoeServ)
 	if err != nil {
 		userLogger.Error(ctx, err.Error())
 		return

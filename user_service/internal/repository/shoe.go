@@ -49,6 +49,7 @@ func (s *ShoeRepository) GetShoe(ctx context.Context, shoeId int64) (*models.Sho
 	err := sq.Select("*").
 		From("shoes").
 		Where(sq.Eq{"id": shoeId}).
+		PlaceholderFormat(sq.Dollar).
 		RunWith(s.db.Db).
 		QueryRow().
 		Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
