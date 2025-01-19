@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: user
+    env_file:
+      - .env
+    ports:
+      - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
+      - "${REST_SERVER_PORT}:${REST_SERVER_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
   postgres:
     image: postgres:15-alpine
     container_name: postgres_container_users
@@ -20,3 +36,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

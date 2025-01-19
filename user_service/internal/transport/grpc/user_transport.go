@@ -64,7 +64,6 @@ func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (
 	const op = "UserTransport.GetUser"
 
 	userID := req.GetUserId()
-	fmt.Println(userID)
 	if userID <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "userId is wrong")
 	}
