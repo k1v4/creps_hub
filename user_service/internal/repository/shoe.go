@@ -92,7 +92,7 @@ func (s *ShoeRepository) UpdateShoe(ctx context.Context, shoeId, userId int64, n
 	if err != nil {
 		//TODO доп проверки
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf(DataBase.ErrNoUser)
+			return nil, DataBase.ErrUserNotFound
 		}
 
 		return nil, fmt.Errorf("%s: %w", op, err)
