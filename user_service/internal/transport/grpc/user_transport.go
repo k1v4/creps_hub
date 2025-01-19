@@ -2,9 +2,12 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/AlekSi/pointer"
 	userv1 "github.com/k1v4/protos/gen/user"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"user_service/internal/models"
 )
@@ -58,7 +61,10 @@ func (s *UserService) AddUser(ctx context.Context, req *userv1.AddUserRequest) (
 }
 
 func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+	const op = "UserTransport.GetUser"
+
 	userID := req.GetUserId()
+	fmt.Println(userID)
 	if userID <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "userId is wrong")
 	}
@@ -69,21 +75,28 @@ func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (
 		return nil, err
 	}
 
-	r := pointer.Get(user)
+	shoesForUser, err := s.GetShoesForUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s:%w", op, err)
+	}
 
-	//TODO добавить обращение к сервису для кроссовок
+	r := pointer.Get(user)
+	rShoes := pointer.Get(shoesForUser)
+
 	return &userv1.GetUserResponse{
 		User: &userv1.User{
 			Id:       r.Id,
 			Name:     r.Name,
 			Surname:  r.Surname,
 			Username: r.UserName,
-			Shoes:    nil,
+			Shoes:    rShoes.Shoes,
 		},
 	}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequest) (*userv1.UpdateUserResponse, error) {
+	const op = "UserTransport.UpdateUser"
+
 	name := req.GetName()
 	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name is required")
@@ -110,16 +123,21 @@ func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequ
 		return nil, err
 	}
 
-	r := pointer.Get(user)
+	shoesForUser, err := s.GetShoesForUser(ctx, id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
 
-	//TODO добавить обращение к сервису для кроссовок
+	r := pointer.Get(user)
+	rShoes := pointer.Get(shoesForUser)
+
 	return &userv1.UpdateUserResponse{
 		User: &userv1.User{
 			Id:       r.Id,
 			Name:     r.Name,
 			Surname:  r.Surname,
 			Username: r.UserName,
-			Shoes:    nil,
+			Shoes:    rShoes.Shoes,
 		},
 	}, nil
 }
@@ -138,5 +156,25 @@ func (s *UserService) DeleteUser(ctx context.Context, req *userv1.DeleteUserRequ
 
 	return &userv1.DeleteUserResponse{
 		IsSuccessfully: IsSuccessfully,
+	}, nil
+}
+
+func (s *UserService) GetShoesForUser(ctx context.Context, userId int64) (*userv1.GetAllShoesResponse, error) {
+	conn, err := grpc.DialContext(ctx, "localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	serv := userv1.NewShoeServiceClient(conn)
+
+	resp, err := serv.GetShoes(ctx, &userv1.GetAllShoesRequest{
+		UserId: userId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &userv1.GetAllShoesResponse{
+		Shoes: resp.GetShoes(),
 	}, nil
 }

@@ -63,7 +63,7 @@ func (u *UserRepository) UpdateUser(ctx context.Context, id int64, name, surname
 		}
 
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf(DataBase.ErrNoUser)
+			return nil, DataBase.ErrUserNotFound
 		}
 
 		return &models.User{}, fmt.Errorf("%s: %w", op, err)
