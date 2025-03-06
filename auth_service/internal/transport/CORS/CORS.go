@@ -18,6 +18,7 @@ func Settings() *cors.Cors {
 		AllowedHeaders: []string{ // получаем с фронта заголовок
 			"Refresh-token",
 			"Content-Type",
+			"Authorization",
 		},
 		ExposedHeaders: []string{ // отдаём с фронта заголовок
 			"Refresh-token",

@@ -32,6 +32,9 @@ func NewAuthService(service Service) *AuthService {
 }
 
 func (s *AuthService) Login(ctx context.Context, req *ssov1.LoginRequest) (*ssov1.LoginResponse, error) {
+	//customHeader := metadata.ValueFromIncomingContext(ctx, "Authorization")
+	//fmt.Println(customHeader)
+
 	email := req.GetEmail()
 	if len(email) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "email is required")

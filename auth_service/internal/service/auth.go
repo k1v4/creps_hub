@@ -64,12 +64,7 @@ func (s *AuthService) Login(ctx context.Context, email string, password string, 
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	app, err := s.AppProv.GetApp(ctx, appId)
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
-	}
-
-	token, err := jwt.NewToken(*user, *app, s.TokenTTL)
+	token, err := jwt.NewToken(*user, s.TokenTTL)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
