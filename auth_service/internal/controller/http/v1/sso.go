@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"auth_service/internal_rest/entity"
-	"auth_service/internal_rest/usecase"
+	"auth_service/internal/entity"
+	"auth_service/internal/usecase"
 	"auth_service/pkg/jwtpkg"
 	"auth_service/pkg/logger"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/k1v4/avito_shop/pkg/jwtPkg"
@@ -20,14 +21,14 @@ type containerRoutes struct {
 func newSsoRoutes(handler *echo.Group, t usecase.ISsoService, l logger.Logger) {
 	r := &containerRoutes{t, l}
 
-	// POST /api/auth
-	handler.POST("/auth", r.Auth)
+	// POST /api/login
+	handler.POST("/login", r.Auth)
 
 	//GET /api/buy/{item}
 	handler.POST("/register", r.Register)
 
 	//POST /api/sendCoin"
-	handler.PUT("/users/:id", r.UpdateUserInfo)
+	handler.PUT("/users", r.UpdateUserInfo)
 
 	//GET  /api/info
 	handler.DELETE("/users", r.DeleteAccount)
@@ -59,7 +60,13 @@ func (r *containerRoutes) Auth(c echo.Context) error {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		errorResponse(c, http.StatusInternalServerError, "internal error")
+		if errors.Is(err, sql.ErrNoRows) {
+			errorResponse(c, http.StatusUnauthorized, "no user")
+
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		errorResponse(c, http.StatusInternalServerError, "internal_old error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -77,15 +84,15 @@ func (r *containerRoutes) Register(c echo.Context) error {
 
 	u := new(entity.RegisterRequest)
 	if err := c.Bind(u); err != nil {
-		errorResponse(c, http.StatusInternalServerError, "internal error")
+		errorResponse(c, http.StatusInternalServerError, "internal_old error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	register, err := r.t.Register(ctx, u.Email, u.Email, u.Username)
+	register, err := r.t.Register(ctx, u.Email, u.Password, u.Username)
 	if err != nil {
 		// TODO Проверка на существующего пользователя (почта и ник)
-		errorResponse(c, http.StatusInternalServerError, "internal error")
+		errorResponse(c, http.StatusInternalServerError, "internal_old error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -124,9 +131,15 @@ func (r *containerRoutes) UpdateUserInfo(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if len(u.Password) < 10 || len(u.Email) == 0 {
+		errorResponse(c, http.StatusBadRequest, "bad request")
+
+		return fmt.Errorf("%s: %w", op, errors.New("bad request"))
+	}
+
 	_, err = r.t.UpdateUserInfo(ctx, userId, u.Email, u.Password, u.Name, u.Surname, u.Username)
 	if err != nil {
-		errorResponse(c, http.StatusInternalServerError, "internal error")
+		errorResponse(c, http.StatusInternalServerError, "internal_old error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -165,7 +178,7 @@ func (r *containerRoutes) DeleteAccount(c echo.Context) error {
 
 	isSucceed, err := r.t.DeleteAccount(ctx, userId)
 	if err != nil {
-		errorResponse(c, http.StatusInternalServerError, "internal error")
+		errorResponse(c, http.StatusInternalServerError, "internal_old error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}

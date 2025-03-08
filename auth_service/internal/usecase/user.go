@@ -1,10 +1,11 @@
 package usecase
 
 import (
-	"auth_service/internal_rest/entity"
+	"auth_service/internal/entity"
 	"auth_service/pkg/DataBase"
 	"auth_service/pkg/jwtpkg"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
@@ -23,8 +24,12 @@ type AuthUseCase struct {
 	RefreshTokenTTL time.Duration
 }
 
-func NewAuthUseCase(repo ISsoRepository) *AuthUseCase {
-	return &AuthUseCase{repo: repo}
+func NewAuthUseCase(repo ISsoRepository, accessTokenTTL, refreshTokenTTL time.Duration) *AuthUseCase {
+	return &AuthUseCase{
+		repo:            repo,
+		AccessTokenTTL:  accessTokenTTL,
+		RefreshTokenTTL: refreshTokenTTL,
+	}
 }
 
 // Login checks is user already register and sent access-token
@@ -34,15 +39,18 @@ func (s *AuthUseCase) Login(ctx context.Context, email string, password string) 
 
 	user, err := s.repo.GetUser(ctx, email)
 	if err != nil {
-		if errors.Is(err, DataBase.ErrUserNotFound) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", "", ErrNoUser
 		}
 
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
+	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	fmt.Println(string(user.Password), string(passHash), password)
 	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			fmt.Println(err)
 			return "", "", ErrInvalidCredentials
 		}
 
@@ -68,6 +76,7 @@ func (s *AuthUseCase) Register(ctx context.Context, email, password, username st
 	const op = "service.Register"
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	fmt.Println(password, string(passHash))
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

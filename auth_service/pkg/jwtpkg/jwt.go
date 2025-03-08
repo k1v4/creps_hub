@@ -1,7 +1,7 @@
 package jwtpkg
 
 import (
-	"auth_service/internal_rest/entity"
+	"auth_service/internal/entity"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"auth_service/internal_rest/entity"
+	"auth_service/internal/entity"
 	"context"
 )
 

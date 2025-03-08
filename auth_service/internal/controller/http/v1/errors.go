@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"auth_service/internal_rest/entity"
+	"auth_service/internal/entity"
 	"errors"
 	"github.com/labstack/echo/v4"
 )

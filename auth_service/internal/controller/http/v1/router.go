@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"auth_service/internal_rest/usecase"
+	"auth_service/internal/usecase"
 	"auth_service/pkg/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

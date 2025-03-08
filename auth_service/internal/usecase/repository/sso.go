@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"auth_service/internal_rest/entity"
+	"auth_service/internal/entity"
 	"auth_service/pkg/DataBase"
 	"auth_service/pkg/DataBase/postgres"
 	"context"
@@ -29,7 +29,7 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 	const op = "repository.SaveUser"
 
 	s, args, err := a.Builder.Insert("users").
-		Columns("email", "pass_hash", "username").
+		Columns("email", "password", "username").
 		Values(email, password, username).
 		Suffix("RETURNING id").
 		ToSql()
@@ -55,24 +55,47 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 func (a *AuthRepository) GetUser(ctx context.Context, email string) (entity.User, error) {
 	const op = "repository.GetUser"
 
-	var result entity.User
+	var (
+		tmpName    sql.NullString
+		tmpSurname sql.NullString
+	)
+
 	s, args, err := a.Builder.Select("*").
 		From("users").
 		Where(sq.Eq{"email": email}).
-		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return entity.User{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = a.Pool.QueryRow(ctx, s, args...).Scan(&result.ID, &result.Email, &result.Password, &result.Username,
-		&result.Name, &result.Surname, &result.AccessLevelId)
+	var result entity.User
+	err = a.Pool.QueryRow(ctx, s, args...).Scan(
+		&result.ID,
+		&result.Email,
+		&result.Password,
+		&result.Username,
+		&tmpName,
+		&tmpSurname,
+		&result.AccessLevelId,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return entity.User{}, fmt.Errorf("%s: %w", op, DataBase.ErrUserNotFound)
+			return entity.User{}, sql.ErrNoRows
 		}
 
 		return entity.User{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if tmpName.Valid {
+		result.Name = tmpName.String
+	} else {
+		result.Name = ""
+	}
+
+	if tmpSurname.Valid {
+		result.Surname = tmpSurname.String
+	} else {
+		result.Surname = ""
 	}
 
 	return result, nil
@@ -126,10 +149,10 @@ func (a *AuthRepository) UpdateUser(ctx context.Context, newUser entity.User) (e
 
 	s, args, err := a.Builder.Update("users").
 		Set("email", newUser.Email).
-		Set("", newUser.Password).
-		Set("", newUser.Username).
-		Set("", newUser.Name).
-		Set("", newUser.Surname).
+		Set("password", newUser.Password).
+		Set("username", newUser.Username).
+		Set("name", newUser.Name).
+		Set("surname", newUser.Surname).
 		Where(sq.Eq{"id": newUser.ID}).
 		ToSql()
 	if err != nil {
