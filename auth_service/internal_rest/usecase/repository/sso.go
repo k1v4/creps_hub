@@ -25,14 +25,13 @@ func NewAuthRepository(pg *postgres.Postgres) *AuthRepository {
 }
 
 // SaveUser adds new user to Database
-func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []byte) (int, error) {
+func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []byte, username string) (int, error) {
 	const op = "repository.SaveUser"
 
 	s, args, err := a.Builder.Insert("users").
-		Columns("email", "pass_hash").
-		Values(email, password).
+		Columns("email", "pass_hash", "username").
+		Values(email, password, username).
 		Suffix("RETURNING id").
-		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)

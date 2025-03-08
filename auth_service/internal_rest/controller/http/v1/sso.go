@@ -3,6 +3,7 @@ package v1
 import (
 	"auth_service/internal_rest/entity"
 	"auth_service/internal_rest/usecase"
+	"auth_service/pkg/jwtpkg"
 	"auth_service/pkg/logger"
 	"errors"
 	"fmt"
@@ -26,10 +27,10 @@ func newSsoRoutes(handler *echo.Group, t usecase.ISsoService, l logger.Logger) {
 	handler.POST("/register", r.Register)
 
 	//POST /api/sendCoin"
-	//handler.POST("/sendCoin", r.SendCoins)
+	handler.PUT("/users/:id", r.UpdateUserInfo)
 
 	//GET  /api/info
-	//handler.GET("/info", r.Info)
+	handler.DELETE("/users", r.DeleteAccount)
 }
 
 func (r *containerRoutes) Auth(c echo.Context) error {
@@ -74,16 +75,102 @@ func (r *containerRoutes) Register(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	return c.JSON(http.StatusOK, "")
+	u := new(entity.RegisterRequest)
+	if err := c.Bind(u); err != nil {
+		errorResponse(c, http.StatusInternalServerError, "internal error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	register, err := r.t.Register(ctx, u.Email, u.Email, u.Username)
+	if err != nil {
+		// TODO Проверка на существующего пользователя (почта и ник)
+		errorResponse(c, http.StatusInternalServerError, "internal error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	// TODO подумать про добавление автоматической авторизации
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"user_id": register,
+	})
 }
 
 func (r *containerRoutes) UpdateUserInfo(c echo.Context) error {
 	const op = "controller.UpdateUserInfo"
 
-	token := jwtPkg.ExtractToken(c)
+	// достаём access token
+	token := jwtpkg.ExtractToken(c)
 	if token == "" {
 		errorResponse(c, http.StatusBadRequest, "bad request")
 
 		return fmt.Errorf("%s: %s", op, "token is required")
 	}
+
+	// валидируем токен и достаём id пользователя
+	userId, err := jwtPkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		errorResponse(c, http.StatusUnauthorized, "bad request")
+
+		return fmt.Errorf("%s: %s", op, err)
+	}
+
+	ctx := c.Request().Context()
+
+	u := new(entity.UpdateUserRequest)
+	if err = c.Bind(u); err != nil {
+		errorResponse(c, http.StatusInternalServerError, "internal error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = r.t.UpdateUserInfo(ctx, userId, u.Email, u.Password, u.Name, u.Surname, u.Username)
+	if err != nil {
+		errorResponse(c, http.StatusInternalServerError, "internal error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return c.JSON(http.StatusOK, entity.UpdateUserResponse{
+		User: entity.User{
+			ID:       userId,
+			Email:    u.Email,
+			Name:     u.Name,
+			Surname:  u.Surname,
+			Username: u.Username,
+		},
+	})
+}
+
+func (r *containerRoutes) DeleteAccount(c echo.Context) error {
+	const op = "controller.DeleteAccount"
+
+	// достаём access token
+	token := jwtpkg.ExtractToken(c)
+	if token == "" {
+		errorResponse(c, http.StatusBadRequest, "bad request")
+
+		return fmt.Errorf("%s: %s", op, "token is required")
+	}
+
+	// валидируем токен и достаём id пользователя
+	userId, err := jwtPkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		errorResponse(c, http.StatusUnauthorized, "bad request")
+
+		return fmt.Errorf("%s: %s", op, err)
+	}
+
+	ctx := c.Request().Context()
+
+	isSucceed, err := r.t.DeleteAccount(ctx, userId)
+	if err != nil {
+		errorResponse(c, http.StatusInternalServerError, "internal error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return c.JSON(http.StatusOK, entity.DeleteUserResponse{
+		IsSuccessfully: isSucceed,
+	})
 }

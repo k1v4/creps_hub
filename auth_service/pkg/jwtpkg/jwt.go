@@ -1,14 +1,24 @@
-package jwt
+package jwtpkg
 
 import (
 	"auth_service/internal_rest/entity"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
+	"strings"
 	"time"
 )
 
 const secret = "secret"
+
+func ExtractToken(c echo.Context) string {
+	bearerToken := c.Request().Header.Get("Authorization")
+	if bearerToken == "" {
+		return ""
+	}
+	return strings.TrimPrefix(bearerToken, "Bearer ")
+}
 
 func NewAccessToken(user entity.User, duration time.Duration) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)

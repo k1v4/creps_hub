@@ -48,6 +48,7 @@ type DeleteUserResponse struct {
 type UpdateUserRequest struct {
 	UserID   int64  `json:"user_id"`
 	Email    string `json:"email"`
+	Password string `json:"password"`
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`

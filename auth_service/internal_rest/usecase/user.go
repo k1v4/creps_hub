@@ -3,7 +3,7 @@ package usecase
 import (
 	"auth_service/internal_rest/entity"
 	"auth_service/pkg/DataBase"
-	"auth_service/pkg/jwt"
+	"auth_service/pkg/jwtpkg"
 	"context"
 	"errors"
 	"fmt"
@@ -49,12 +49,12 @@ func (s *AuthUseCase) Login(ctx context.Context, email string, password string) 
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	tokenAccess, err := jwt.NewAccessToken(user, s.AccessTokenTTL)
+	tokenAccess, err := jwtpkg.NewAccessToken(user, s.AccessTokenTTL)
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	tokenRefresh, err := jwt.NewAccessToken(user, s.RefreshTokenTTL)
+	tokenRefresh, err := jwtpkg.NewAccessToken(user, s.RefreshTokenTTL)
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -64,7 +64,7 @@ func (s *AuthUseCase) Login(ctx context.Context, email string, password string) 
 
 // Register adds new user to app
 // If user with given email already exists, returns error.
-func (s *AuthUseCase) Register(ctx context.Context, email string, password string) (int, error) {
+func (s *AuthUseCase) Register(ctx context.Context, email, password, username string) (int, error) {
 	const op = "service.Register"
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -72,7 +72,7 @@ func (s *AuthUseCase) Register(ctx context.Context, email string, password strin
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	id, err := s.repo.SaveUser(ctx, email, passHash)
+	id, err := s.repo.SaveUser(ctx, email, passHash, username)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrUserExists) {
 			return 0, fmt.Errorf("%s: %w", op, ErrUserExist)

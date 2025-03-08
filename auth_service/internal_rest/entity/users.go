@@ -9,7 +9,7 @@ type User struct {
 	Name          string `json:"name"`
 	Surname       string `json:"surname"`
 	Username      string `json:"username"`
-	AccessLevelId int    `json:"accessLevelId"`
+	AccessLevelId int    `json:"-"`
 }
 
 func (o *User) MarshalBinary() ([]byte, error) {
