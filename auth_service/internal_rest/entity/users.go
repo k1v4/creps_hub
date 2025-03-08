@@ -3,9 +3,9 @@ package entity
 import "encoding/json"
 
 type User struct {
-	ID            int64  `json:"id"`
+	ID            int    `json:"id"`
 	Email         string `json:"email"`
-	Password      string `json:"-"`
+	Password      []byte `json:"-"`
 	Name          string `json:"name"`
 	Surname       string `json:"surname"`
 	Username      string `json:"username"`

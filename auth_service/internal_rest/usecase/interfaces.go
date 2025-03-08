@@ -13,4 +13,9 @@ type ISsoRepository interface {
 	UpdateUser(ctx context.Context, newUser entity.User) (entity.User, error)
 }
 
-type ISsoService interface{}
+type ISsoService interface {
+	Login(ctx context.Context, email string, password string) (string, string, error)
+	Register(ctx context.Context, email string, password string) (int, error)
+	DeleteAccount(ctx context.Context, id int) (bool, error)
+	UpdateUserInfo(ctx context.Context, id int, email, password, name, surname, username string) (entity.User, error)
+}

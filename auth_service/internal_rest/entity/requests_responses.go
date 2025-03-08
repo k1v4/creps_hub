@@ -56,3 +56,7 @@ type UpdateUserRequest struct {
 type UpdateUserResponse struct {
 	User User `json:"user"`
 }
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
