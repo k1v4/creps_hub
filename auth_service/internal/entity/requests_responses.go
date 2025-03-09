@@ -61,3 +61,8 @@ type UpdateUserResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}

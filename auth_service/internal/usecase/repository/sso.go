@@ -9,7 +9,8 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/lib/pq"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 )
 
 const defaultEntityCap = 64
@@ -40,9 +41,9 @@ func (a *AuthRepository) SaveUser(ctx context.Context, email string, password []
 	var id int
 	err = a.Pool.QueryRow(ctx, s, args...).Scan(&id)
 	if err != nil {
-		var pqErr *pq.Error
+		var pqErr *pgconn.PgError
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
-			return 0, fmt.Errorf("%s: %w", op, DataBase.ErrUserExists)
+			return 0, DataBase.ErrUserExists
 		}
 
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -79,8 +80,8 @@ func (a *AuthRepository) GetUser(ctx context.Context, email string) (entity.User
 		&result.AccessLevelId,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return entity.User{}, sql.ErrNoRows
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.User{}, DataBase.ErrUserNotFound
 		}
 
 		return entity.User{}, fmt.Errorf("%s: %w", op, err)

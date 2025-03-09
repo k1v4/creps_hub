@@ -5,7 +5,6 @@ import (
 	"auth_service/pkg/DataBase"
 	"auth_service/pkg/jwtpkg"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
@@ -39,7 +38,7 @@ func (s *AuthUseCase) Login(ctx context.Context, email string, password string) 
 
 	user, err := s.repo.GetUser(ctx, email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, DataBase.ErrUserNotFound) {
 			return "", "", ErrNoUser
 		}
 
@@ -76,7 +75,6 @@ func (s *AuthUseCase) Register(ctx context.Context, email, password, username st
 	const op = "service.Register"
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	fmt.Println(password, string(passHash))
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
@@ -84,7 +82,7 @@ func (s *AuthUseCase) Register(ctx context.Context, email, password, username st
 	id, err := s.repo.SaveUser(ctx, email, passHash, username)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrUserExists) {
-			return 0, fmt.Errorf("%s: %w", op, ErrUserExist)
+			return 0, ErrUserExist
 		}
 
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -129,4 +127,15 @@ func (s *AuthUseCase) UpdateUserInfo(ctx context.Context, id int, email, passwor
 	}
 
 	return user, nil
+}
+
+func (s *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (string, string, error) {
+	const op = "service.RefreshToken"
+
+	newAccessToken, err := jwtpkg.RefreshAccessToken(refreshToken, s.RefreshTokenTTL)
+	if err != nil {
+		return "", "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return newAccessToken, refreshToken, nil
 }

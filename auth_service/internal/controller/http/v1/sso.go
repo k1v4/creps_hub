@@ -5,7 +5,6 @@ import (
 	"auth_service/internal/usecase"
 	"auth_service/pkg/jwtpkg"
 	"auth_service/pkg/logger"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/k1v4/avito_shop/pkg/jwtPkg"
@@ -24,14 +23,17 @@ func newSsoRoutes(handler *echo.Group, t usecase.ISsoService, l logger.Logger) {
 	// POST /api/login
 	handler.POST("/login", r.Auth)
 
-	//GET /api/buy/{item}
+	// GET /api/buy/{item}
 	handler.POST("/register", r.Register)
 
-	//POST /api/sendCoin"
+	// POST /api/sendCoin"
 	handler.PUT("/users", r.UpdateUserInfo)
 
-	//GET  /api/info
+	// GET  /api/info
 	handler.DELETE("/users", r.DeleteAccount)
+
+	// POST /api/refresh
+	handler.POST("/refresh", r.RefreshToken)
 }
 
 func (r *containerRoutes) Auth(c echo.Context) error {
@@ -55,18 +57,18 @@ func (r *containerRoutes) Auth(c echo.Context) error {
 	accessToken, refreshToken, err := r.t.Login(ctx, u.Email, u.Password)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidCredentials) {
-			errorResponse(c, http.StatusUnauthorized, "bad request")
+			errorResponse(c, http.StatusUnauthorized, "invalid credentials")
 
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, usecase.ErrNoUser) {
 			errorResponse(c, http.StatusUnauthorized, "no user")
 
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		errorResponse(c, http.StatusInternalServerError, "internal_old error")
+		errorResponse(c, http.StatusInternalServerError, "internal error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -84,15 +86,26 @@ func (r *containerRoutes) Register(c echo.Context) error {
 
 	u := new(entity.RegisterRequest)
 	if err := c.Bind(u); err != nil {
-		errorResponse(c, http.StatusInternalServerError, "internal_old error")
+		errorResponse(c, http.StatusInternalServerError, "internal error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if len([]rune(u.Password)) < 10 {
+		errorResponse(c, http.StatusBadRequest, "password must be equal or longer than 10")
+
+		return fmt.Errorf("%s: %w", op, errors.New("password must be equal or longer than 10"))
+	}
+
 	register, err := r.t.Register(ctx, u.Email, u.Password, u.Username)
 	if err != nil {
-		// TODO Проверка на существующего пользователя (почта и ник)
-		errorResponse(c, http.StatusInternalServerError, "internal_old error")
+		if errors.Is(err, usecase.ErrUserExist) {
+			errorResponse(c, http.StatusUnauthorized, "email or username is exist")
+
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		errorResponse(c, http.StatusInternalServerError, "internal error")
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -185,5 +198,24 @@ func (r *containerRoutes) DeleteAccount(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, entity.DeleteUserResponse{
 		IsSuccessfully: isSucceed,
+	})
+}
+
+func (r *containerRoutes) RefreshToken(c echo.Context) error {
+	const op = "controller.RefreshToken"
+
+	refreshTokenOld := jwtpkg.ExtractToken(c)
+	ctx := c.Request().Context()
+
+	accessToken, refreshToken, err := r.t.RefreshToken(ctx, refreshTokenOld)
+	if err != nil {
+		errorResponse(c, http.StatusUnauthorized, "token error")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return c.JSON(http.StatusOK, entity.RefreshTokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 }

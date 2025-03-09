@@ -14,9 +14,11 @@ const secret = "secret"
 
 func ExtractToken(c echo.Context) string {
 	bearerToken := c.Request().Header.Get("Authorization")
+
 	if bearerToken == "" {
 		return ""
 	}
+	
 	return strings.TrimPrefix(bearerToken, "Bearer ")
 }
 

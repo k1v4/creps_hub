@@ -18,4 +18,5 @@ type ISsoService interface {
 	Register(ctx context.Context, email, password, username string) (int, error)
 	DeleteAccount(ctx context.Context, id int) (bool, error)
 	UpdateUserInfo(ctx context.Context, id int, email, password, name, surname, username string) (entity.User, error)
+	RefreshToken(ctx context.Context, token string) (string, string, error)
 }
