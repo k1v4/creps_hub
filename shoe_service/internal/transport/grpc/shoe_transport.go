@@ -2,12 +2,14 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/AlekSi/pointer"
 	shoev1 "github.com/k1v4/protos/gen/shoe"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"user_service/internal/models"
+	"user_service/internal/service"
 	"user_service/pkg/jwtpkg"
 )
 
@@ -82,7 +84,11 @@ func (s *ShoeService) GetShoe(ctx context.Context, req *shoev1.GetShoeRequest) (
 
 	shoe, err := s.service.GetShoe(ctx, shoeId)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		if errors.Is(err, service.ErrShoeNotFound) {
+			return nil, status.Error(codes.NotFound, "shoe not found")
+		}
+
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	r := pointer.Get(shoe)
@@ -117,7 +123,7 @@ func (s *ShoeService) DeleteShoe(ctx context.Context, req *shoev1.DeleteShoeRequ
 
 	result, err := s.service.DeleteShoe(ctx, shoeId)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &shoev1.DeleteShoeResponse{IsSuccessfully: result}, nil
@@ -153,7 +159,11 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *shoev1.UpdateShoeRequ
 
 	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, name, imageUrl)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, service.ErrShoeNotFound) {
+			return nil, status.Error(codes.NotFound, "shoe not found")
+		}
+
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	r := pointer.Get(shoe)

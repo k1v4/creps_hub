@@ -2,8 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"user_service/internal/models"
+	DataBase "user_service/pkg/DB"
+)
+
+var (
+	ErrShoeNotFound = errors.New("shoe not found")
 )
 
 type ShoeService struct {
@@ -40,7 +46,9 @@ func (s *ShoeService) GetShoe(ctx context.Context, shoeId int64) (*models.Shoe, 
 
 	shoe, err := s.ShoeProv.GetShoe(ctx, shoeId)
 	if err != nil {
-		// TODO доп проверки
+		if errors.Is(err, DataBase.ErrShoeNotFound) {
+			return nil, ErrShoeNotFound
+		}
 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -64,6 +72,10 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, shoeId, userId int64, name
 
 	shoe, err := s.ShoeProv.UpdateShoe(ctx, shoeId, userId, name, imageUrl)
 	if err != nil {
+		if errors.Is(err, DataBase.ErrShoeNotFound) {
+			return nil, ErrShoeNotFound
+		}
+
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
