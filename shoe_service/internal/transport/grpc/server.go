@@ -21,7 +21,7 @@ type Server struct {
 	listener   net.Listener
 }
 
-func NewServer(ctx context.Context, grpcPort, restPort int, userService IUserService, shoeService IShoeService) (*Server, error) {
+func NewServer(ctx context.Context, grpcPort, restPort int, shoeService IShoeService) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -34,7 +34,6 @@ func NewServer(ctx context.Context, grpcPort, restPort int, userService IUserSer
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	userv1.RegisterUserServiceServer(grpcServer, NewUserService(userService))
 	userv1.RegisterShoeServiceServer(grpcServer, NewShoeService(shoeService))
 
 	conn, err := grpc.NewClient(
