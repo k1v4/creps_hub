@@ -35,6 +35,7 @@ func (s *ShoeRepository) AddShoe(ctx context.Context, userID int64, name, imageU
 		QueryRow().
 		Scan(&shoeId)
 	if err != nil {
+		
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -52,9 +53,12 @@ func (s *ShoeRepository) GetShoe(ctx context.Context, shoeId int64) (*models.Sho
 		PlaceholderFormat(sq.Dollar).
 		RunWith(s.db.Db).
 		QueryRow().
-		Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
+		Scan(&shoe.Id, &shoe.UserId, &shoe.Name, &shoe.ImageUrl)
 	if err != nil {
-		//TODO доп проверки
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, DataBase.ErrShoeNotFound
+		}
+
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -90,9 +94,8 @@ func (s *ShoeRepository) UpdateShoe(ctx context.Context, shoeId, userId int64, n
 		RunWith(s.db.Db).
 		Query()
 	if err != nil {
-		//TODO доп проверки
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, DataBase.ErrUserNotFound
+			return nil, DataBase.ErrShoeNotFound
 		}
 
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -123,7 +126,7 @@ func (s *ShoeRepository) GetShoes(ctx context.Context, userId int64) (*[]models.
 
 	for rows.Next() {
 		var shoe models.Shoe
-		err = rows.Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
+		err = rows.Scan(&shoe.Id, &shoe.UserId, &shoe.Name, &shoe.ImageUrl)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	userv1 "github.com/k1v4/protos/gen/user"
+	shoev1 "github.com/k1v4/protos/gen/shoe"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -21,7 +21,7 @@ type Server struct {
 	listener   net.Listener
 }
 
-func NewServer(ctx context.Context, grpcPort, restPort int, userService IUserService, shoeService IShoeService) (*Server, error) {
+func NewServer(ctx context.Context, grpcPort, restPort int, shoeService IShoeService) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -34,8 +34,7 @@ func NewServer(ctx context.Context, grpcPort, restPort int, userService IUserSer
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	userv1.RegisterUserServiceServer(grpcServer, NewUserService(userService))
-	userv1.RegisterShoeServiceServer(grpcServer, NewShoeService(shoeService))
+	shoev1.RegisterShoeServiceServer(grpcServer, NewShoeService(shoeService))
 
 	conn, err := grpc.NewClient(
 		fmt.Sprintf(":%d", grpcPort),
@@ -46,10 +45,10 @@ func NewServer(ctx context.Context, grpcPort, restPort int, userService IUserSer
 	}
 
 	gwmux := runtime.NewServeMux()
-	if err = userv1.RegisterUserServiceHandler(ctx, gwmux, conn); err != nil {
+	if err = shoev1.RegisterShoeServiceHandler(ctx, gwmux, conn); err != nil {
 		return nil, fmt.Errorf("failed to register user gateway: %w", err)
 	}
-	if err = userv1.RegisterShoeServiceHandler(ctx, gwmux, conn); err != nil {
+	if err = shoev1.RegisterShoeServiceHandler(ctx, gwmux, conn); err != nil {
 		return nil, fmt.Errorf("failed to register shoe gateway: %w", err)
 	}
 
