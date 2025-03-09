@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/AlekSi/pointer"
-	userv1 "github.com/k1v4/protos/gen/user"
+	shoev1 "github.com/k1v4/protos/gen/shoe"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"user_service/internal/models"
+	"user_service/pkg/jwtpkg"
 )
 
 type IShoeService interface {
@@ -19,7 +20,7 @@ type IShoeService interface {
 }
 
 type ShoeService struct {
-	userv1.UnimplementedShoeServiceServer
+	shoev1.UnimplementedShoeServiceServer
 	service IShoeService
 }
 
@@ -27,8 +28,18 @@ func NewShoeService(service IShoeService) *ShoeService {
 	return &ShoeService{service: service}
 }
 
-func (s *ShoeService) AddShoe(ctx context.Context, req *userv1.AddShoeRequest) (*userv1.AddShoeResponse, error) {
+func (s *ShoeService) AddShoe(ctx context.Context, req *shoev1.AddShoeRequest) (*shoev1.AddShoeResponse, error) {
 	const op = "ShoeTransport.AddShoe"
+
+	token := jwtpkg.ExtractToken(ctx)
+	if token == "" {
+		return nil, status.Error(codes.PermissionDenied, "token is empty")
+	}
+
+	userId, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "token is invalid")
+	}
 
 	name := req.GetName()
 	if name == "" {
@@ -40,24 +51,29 @@ func (s *ShoeService) AddShoe(ctx context.Context, req *userv1.AddShoeRequest) (
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
-	userId := req.GetUserId()
-	if userId <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "wrong user id")
-	}
-
 	shoeId, err := s.service.AddShoe(ctx, userId, name, imageUrl)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &userv1.AddShoeResponse{
+	return &shoev1.AddShoeResponse{
 		ShoeId: shoeId,
 	}, nil
 }
 
-func (s *ShoeService) GetShoe(ctx context.Context, req *userv1.GetShoeRequest) (*userv1.GetShoeResponse, error) {
+func (s *ShoeService) GetShoe(ctx context.Context, req *shoev1.GetShoeRequest) (*shoev1.GetShoeResponse, error) {
 	const op = "ShoeTransport.GetShoe"
+
+	token := jwtpkg.ExtractToken(ctx)
+	if token == "" {
+		return nil, status.Error(codes.PermissionDenied, "token is empty")
+	}
+
+	_, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "token is invalid")
+	}
 
 	shoeId := req.GetShoeId()
 	if shoeId <= 0 {
@@ -71,8 +87,8 @@ func (s *ShoeService) GetShoe(ctx context.Context, req *userv1.GetShoeRequest) (
 
 	r := pointer.Get(shoe)
 
-	return &userv1.GetShoeResponse{
-		Shoe: &userv1.Shoe{
+	return &shoev1.GetShoeResponse{
+		Shoe: &shoev1.Shoe{
 			ShoeId:   shoeId,
 			Name:     r.Name,
 			ImageUrl: r.ImageUrl,
@@ -81,8 +97,18 @@ func (s *ShoeService) GetShoe(ctx context.Context, req *userv1.GetShoeRequest) (
 	}, nil
 }
 
-func (s *ShoeService) DeleteShoe(ctx context.Context, req *userv1.DeleteShoeRequest) (*userv1.DeleteShoeResponse, error) {
+func (s *ShoeService) DeleteShoe(ctx context.Context, req *shoev1.DeleteShoeRequest) (*shoev1.DeleteShoeResponse, error) {
 	const op = "ShoeTransport.DeleteShoe"
+
+	token := jwtpkg.ExtractToken(ctx)
+	if token == "" {
+		return nil, status.Error(codes.PermissionDenied, "token is empty")
+	}
+
+	_, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "token is invalid")
+	}
 
 	shoeId := req.GetShoeId()
 	if shoeId <= 0 {
@@ -94,11 +120,21 @@ func (s *ShoeService) DeleteShoe(ctx context.Context, req *userv1.DeleteShoeRequ
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &userv1.DeleteShoeResponse{IsSuccessfully: result}, nil
+	return &shoev1.DeleteShoeResponse{IsSuccessfully: result}, nil
 }
 
-func (s *ShoeService) UpdateShoe(ctx context.Context, req *userv1.UpdateShoeRequest) (*userv1.UpdateShoeResponse, error) {
+func (s *ShoeService) UpdateShoe(ctx context.Context, req *shoev1.UpdateShoeRequest) (*shoev1.UpdateShoeResponse, error) {
 	const op = "ShoeTransport.UpdateShoe"
+
+	token := jwtpkg.ExtractToken(ctx)
+	if token == "" {
+		return nil, status.Error(codes.PermissionDenied, "token is empty")
+	}
+
+	userId, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "token is invalid")
+	}
 
 	name := req.GetName()
 	if name == "" {
@@ -115,11 +151,6 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *userv1.UpdateShoeRequ
 		return nil, status.Error(codes.InvalidArgument, "wrong shoe id")
 	}
 
-	userId := req.GetUserId()
-	if userId <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "wrong user id")
-	}
-
 	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, name, imageUrl)
 	if err != nil {
 		return nil, err
@@ -127,8 +158,8 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *userv1.UpdateShoeRequ
 
 	r := pointer.Get(shoe)
 
-	return &userv1.UpdateShoeResponse{
-		Shoe: &userv1.Shoe{
+	return &shoev1.UpdateShoeResponse{
+		Shoe: &shoev1.Shoe{
 			ShoeId:   r.Id,
 			Name:     r.Name,
 			ImageUrl: r.ImageUrl,
@@ -137,12 +168,17 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *userv1.UpdateShoeRequ
 	}, nil
 }
 
-func (s *ShoeService) GetShoes(ctx context.Context, req *userv1.GetAllShoesRequest) (*userv1.GetAllShoesResponse, error) {
+func (s *ShoeService) GetShoes(ctx context.Context, req *shoev1.GetAllShoesRequest) (*shoev1.GetAllShoesResponse, error) {
 	const op = "ShoeTransport.GetAllShoes"
 
-	userId := req.GetUserId()
-	if userId <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "wrong user id")
+	token := jwtpkg.ExtractToken(ctx)
+	if token == "" {
+		return nil, status.Error(codes.PermissionDenied, "token is empty")
+	}
+
+	userId, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "token is invalid")
 	}
 
 	shoes, err := s.service.GetShoes(ctx, userId)
@@ -151,10 +187,10 @@ func (s *ShoeService) GetShoes(ctx context.Context, req *userv1.GetAllShoesReque
 	}
 
 	r := pointer.Get(shoes)
-	var res []*userv1.Shoe
+	var res []*shoev1.Shoe
 
 	for _, o := range r {
-		res = append(res, &userv1.Shoe{
+		res = append(res, &shoev1.Shoe{
 			ShoeId:   o.Id,
 			Name:     o.Name,
 			ImageUrl: o.ImageUrl,
@@ -162,5 +198,5 @@ func (s *ShoeService) GetShoes(ctx context.Context, req *userv1.GetAllShoesReque
 		})
 	}
 
-	return &userv1.GetAllShoesResponse{Shoes: res}, nil
+	return &shoev1.GetAllShoesResponse{Shoes: res}, nil
 }

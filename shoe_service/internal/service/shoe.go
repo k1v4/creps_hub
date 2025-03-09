@@ -22,8 +22,6 @@ func NewShoeService(shoeProvider ShoeProvider) *ShoeService {
 	return &ShoeService{shoeProvider}
 }
 
-//TODO когда будет сделано, добавить проверку авторизации
-
 func (s *ShoeService) AddShoe(ctx context.Context, userID int64, name, imageUrl string) (int64, error) {
 	const op = "ShoeService.AddShoe"
 

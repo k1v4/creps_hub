@@ -52,7 +52,7 @@ func (s *ShoeRepository) GetShoe(ctx context.Context, shoeId int64) (*models.Sho
 		PlaceholderFormat(sq.Dollar).
 		RunWith(s.db.Db).
 		QueryRow().
-		Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
+		Scan(&shoe.Id, &shoe.UserId, &shoe.Name, &shoe.ImageUrl)
 	if err != nil {
 		//TODO доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -123,7 +123,7 @@ func (s *ShoeRepository) GetShoes(ctx context.Context, userId int64) (*[]models.
 
 	for rows.Next() {
 		var shoe models.Shoe
-		err = rows.Scan(&shoe.Id, &shoe.Name, &shoe.ImageUrl, &shoe.UserId)
+		err = rows.Scan(&shoe.Id, &shoe.UserId, &shoe.Name, &shoe.ImageUrl)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
