@@ -64,7 +64,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 
 	const deltaSeconds = 1
 
-	// check if exp of token is in correct range, ttl get from st.Cfg.TokenTTL
+	// check if exp of token is in correct range, ttl get from st.Cfg.AccessTokenTTL
 	assert.InDelta(t, loginTime.Add(st.Cfg.TokenTTL).Unix(), claims["exp"].(float64), deltaSeconds)
 }
 

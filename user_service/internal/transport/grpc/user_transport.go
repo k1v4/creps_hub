@@ -124,7 +124,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequ
 
 	shoesForUser, err := s.GetShoesForUser(ctx, id)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "internal error")
+		return nil, status.Error(codes.Internal, "internal_old error")
 	}
 
 	r := pointer.Get(user)

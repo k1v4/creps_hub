@@ -1,7 +1,7 @@
 package suite
 
 import (
-	"auth_service/internal/config"
+	"auth_service/internal_old/config"
 	"context"
 	"fmt"
 	ssov1 "github.com/k1v4/protos/gen/sso"
