@@ -10,10 +10,11 @@ import (
 type Config struct {
 	postgres.DBConfig
 
-	GRPCServerPort  int           `env:"GRPC_SERVER_PORT" env-description:"grpc server port" env-default:"50052"`
-	RestServerPort  int           `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8081"`
-	TokenTTL        time.Duration `env:"TOKEN_TTL" env-default:"1h"`
-	RefreshTokenTTL time.Duration `env:"REFRESH_TOKEN_TTL" env-default:"24h"`
+	GRPCServerPort         int           `env:"GRPC_SERVER_PORT" env-description:"grpc server port" env-default:"50052"`
+	RestServerPort         int           `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8081"`
+	TokenTTL               time.Duration `env:"TOKEN_TTL" env-default:"1h"`
+	RefreshTokenTTL        time.Duration `env:"REFRESH_TOKEN_TTL" env-default:"24h"`
+	UploaderGRPCServerPort int           `env:"UPLOADER_GRPC_SERVER_PORT" env-default:"50053"`
 }
 
 func MustLoadConfig() *Config {

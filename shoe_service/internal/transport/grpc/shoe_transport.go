@@ -48,12 +48,12 @@ func (s *ShoeService) AddShoe(ctx context.Context, req *shoev1.AddShoeRequest) (
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
 
-	imageUrl := req.GetImageUrl()
-	if imageUrl == "" {
+	imageData := req.GetImageData()
+	if len(imageData) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
-	shoeId, err := s.service.AddShoe(ctx, userId, name, imageUrl)
+	shoeId, err := s.service.AddShoe(ctx, userId, name, imageData)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)
