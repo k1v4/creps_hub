@@ -77,7 +77,17 @@ func (s *ShoeService) GetShoe(ctx context.Context, shoeId int64) (*models.Shoe, 
 func (s *ShoeService) DeleteShoe(ctx context.Context, shoeID int64) (bool, error) {
 	const op = "ShoeService.DeleteShoe"
 
-	// TODO удаление фото
+	shoe, err := s.ShoeProv.GetShoe(ctx, shoeID)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = s.client.DeleteFile(ctx, &uploaderv1.ImageDeleteRequest{
+		Url: shoe.ImageUrl,
+	})
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
 
 	ok, err := s.ShoeProv.RemoveShoe(ctx, shoeID)
 	if err != nil {
@@ -87,12 +97,38 @@ func (s *ShoeService) DeleteShoe(ctx context.Context, shoeID int64) (bool, error
 	return ok, nil
 }
 
-func (s *ShoeService) UpdateShoe(ctx context.Context, shoeId, userId int64, name, imageUrl string) (*models.Shoe, error) {
+func (s *ShoeService) UpdateShoe(ctx context.Context, shoeId, userId int64, name string, imageData []byte) (*models.Shoe, error) {
 	const op = "ShoeService.UpdateShoe"
 
-	// TODO загрузка фото
+	// текущее состояние для удаления фото
+	getShoe, err := s.ShoeProv.GetShoe(ctx, shoeId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-	shoe, err := s.ShoeProv.UpdateShoe(ctx, shoeId, userId, name, imageUrl)
+	// удаление фото
+	_, err = s.client.DeleteFile(ctx, &uploaderv1.ImageDeleteRequest{
+		Url: getShoe.ImageUrl,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	// загрузка фото
+	uploadFile, err := s.client.UploadFile(ctx, &uploaderv1.ImageUploadRequest{
+		ImageData: imageData,
+		FileName:  name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	image := uploadFile.GetUrl()
+	if len(image) == 0 {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	shoe, err := s.ShoeProv.UpdateShoe(ctx, shoeId, userId, name, image)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrShoeNotFound) {
 			return nil, ErrShoeNotFound
