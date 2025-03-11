@@ -72,11 +72,11 @@ func main() {
 }
 
 func createUploaderClient(port int) (uploaderv1.FileUploaderClient, error) {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", port), grpc.WithInsecure())
+	// TODO в конфиг uploader
+	conn, err := grpc.Dial(fmt.Sprintf("uploader:%d", port), grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	client := uploaderv1.NewFileUploaderClient(conn)
 

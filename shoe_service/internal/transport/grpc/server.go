@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"user_service/CORS"
 	"user_service/pkg/logger"
 )
 
@@ -48,13 +49,12 @@ func NewServer(ctx context.Context, grpcPort, restPort int, shoeService IShoeSer
 	if err = shoev1.RegisterShoeServiceHandler(ctx, gwmux, conn); err != nil {
 		return nil, fmt.Errorf("failed to register user gateway: %w", err)
 	}
-	if err = shoev1.RegisterShoeServiceHandler(ctx, gwmux, conn); err != nil {
-		return nil, fmt.Errorf("failed to register shoe gateway: %w", err)
-	}
+
+	corsHandler := CORS.Settings().Handler(gwmux)
 
 	gwServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", restPort),
-		Handler: gwmux,
+		Handler: corsHandler,
 	}
 
 	return &Server{grpcServer, gwServer, listener}, nil
