@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/minio/minio-go/v7"
+	"strings"
 )
 
 type UploadRepository struct {
@@ -26,8 +27,12 @@ func (ur *UploadRepository) UploadImage(ctx context.Context, fileName string, im
 
 	reader := bytes.NewReader(imageData)
 
+	suffix := strings.Split(fileName, ".")[len(strings.Split(fileName, "."))-1]
+
 	// Загружаем файл в MinIO
-	_, err := ur.minioClient.PutObject(ctx, ur.bucketName, fileName, reader, int64(len(imageData)), minio.PutObjectOptions{})
+	_, err := ur.minioClient.PutObject(ctx, ur.bucketName, fileName, reader, int64(len(imageData)), minio.PutObjectOptions{
+		ContentType: fmt.Sprintf("image/%s", suffix),
+	})
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}

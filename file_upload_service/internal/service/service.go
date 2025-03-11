@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 type IUploadRepository interface {
@@ -31,8 +32,11 @@ func (s *UploadServer) UploadImage(ctx context.Context, fileName string, imageDa
 	return urlImage, nil
 }
 
-func (s *UploadServer) DeleteImage(ctx context.Context, fileName string) (bool, error) {
+func (s *UploadServer) DeleteImage(ctx context.Context, url string) (bool, error) {
 	const op = "service.DeleteImage"
+
+	urlArr := strings.Split(url, "/")
+	fileName := urlArr[len(urlArr)-1]
 
 	err := s.upRepo.DeleteImage(ctx, fileName)
 	if err != nil {

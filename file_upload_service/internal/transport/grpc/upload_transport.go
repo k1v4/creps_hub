@@ -10,7 +10,7 @@ import (
 
 type IUploadService interface {
 	UploadImage(ctx context.Context, fileName string, imageData []byte) (string, error)
-	DeleteImage(ctx context.Context, fileName string) (bool, error)
+	DeleteImage(ctx context.Context, url string) (bool, error)
 }
 
 type UploadTransport struct {
