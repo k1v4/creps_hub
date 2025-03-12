@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 )
 
 type IUploadRepository interface {
@@ -24,7 +25,18 @@ func NewUploadService(upRepo IUploadRepository) *UploadServer {
 func (s *UploadServer) UploadImage(ctx context.Context, fileName string, imageData []byte) (string, error) {
 	const op = "service.GetShoes"
 
-	urlImage, err := s.upRepo.UploadImage(ctx, fileName, imageData)
+	currentTime := time.Now()
+
+	formattedTime := currentTime.Format("2006-01-02 15:04:05")
+	formattedTime = strings.ReplaceAll(formattedTime, "-", "")
+	formattedTime = strings.ReplaceAll(formattedTime, ":", "-")
+	formattedTime = strings.ReplaceAll(formattedTime, " ", "_")
+
+	arr := strings.Split(fileName, ".")
+	imageType := arr[len(arr)-1]
+	arr = arr[:len(arr)-1]
+
+	urlImage, err := s.upRepo.UploadImage(ctx, fmt.Sprintf("%s_%s.%s", strings.Join(arr, "."), formattedTime, imageType), imageData)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
