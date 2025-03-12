@@ -14,10 +14,10 @@ import (
 )
 
 type IShoeService interface {
-	AddShoe(ctx context.Context, userID int64, name, imageUrl string) (int64, error)
+	AddShoe(ctx context.Context, userID int64, name string, imageData []byte) (int64, error)
 	GetShoe(ctx context.Context, shoeId int64) (*models.Shoe, error)
 	DeleteShoe(ctx context.Context, shoeID int64) (bool, error)
-	UpdateShoe(ctx context.Context, shoeId, userId int64, name, imageUrl string) (*models.Shoe, error)
+	UpdateShoe(ctx context.Context, shoeId, userId int64, name string, imageUrl []byte) (*models.Shoe, error)
 	GetShoes(ctx context.Context, userId int64) (*[]models.Shoe, error)
 }
 
@@ -48,12 +48,17 @@ func (s *ShoeService) AddShoe(ctx context.Context, req *shoev1.AddShoeRequest) (
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
 
-	imageUrl := req.GetImageUrl()
-	if imageUrl == "" {
+	imageName := req.GetImageName()
+	if len([]rune(imageName)) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "image name is empty")
+	}
+
+	imageData := req.GetImageData()
+	if len(imageData) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
-	shoeId, err := s.service.AddShoe(ctx, userId, name, imageUrl)
+	shoeId, err := s.service.AddShoe(ctx, userId, imageName, imageData)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -147,9 +152,14 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *shoev1.UpdateShoeRequ
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
 
-	imageUrl := req.GetImageUrl()
-	if imageUrl == "" {
+	imageData := req.GetImageData()
+	if len(imageData) == 9 {
 		return nil, status.Error(codes.InvalidArgument, "image is required")
+	}
+
+	newFileName := req.GetNewFileName()
+	if len([]rune(newFileName)) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "new file name is empty")
 	}
 
 	shoeId := req.GetShoeId()
@@ -157,7 +167,7 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *shoev1.UpdateShoeRequ
 		return nil, status.Error(codes.InvalidArgument, "wrong shoe id")
 	}
 
-	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, name, imageUrl)
+	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, newFileName, imageData)
 	if err != nil {
 		if errors.Is(err, service.ErrShoeNotFound) {
 			return nil, status.Error(codes.NotFound, "shoe not found")

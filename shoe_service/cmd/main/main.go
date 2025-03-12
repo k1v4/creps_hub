@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
+	"google.golang.org/grpc"
 	"os"
 	"os/signal"
 	"syscall"
 	"user_service/internal/config"
 	"user_service/internal/repository"
 	"user_service/internal/service"
-	"user_service/internal/transport/grpc"
+	grpc_transport "user_service/internal/transport/grpc"
 	"user_service/pkg/DB/postgres"
 	"user_service/pkg/logger"
 )
@@ -17,15 +19,15 @@ import (
 func main() {
 	ctx := context.Background()
 
-	userLogger := logger.NewLogger()
-	ctx = context.WithValue(ctx, logger.LoggerKey, userLogger)
+	shoeLogger := logger.NewLogger()
+	ctx = context.WithValue(ctx, logger.LoggerKey, shoeLogger)
 
 	cfg := config.MustLoadConfig()
 	if cfg == nil {
 		panic("load config fail")
 	}
 
-	userLogger.Info(ctx, "read config successfully")
+	shoeLogger.Info(ctx, "read config successfully")
 
 	storage, err := postgres.New(cfg.DBConfig)
 	if err != nil {
@@ -34,11 +36,16 @@ func main() {
 
 	shoeRepo := repository.NewShoeRepository(storage)
 
-	shoeServ := service.NewShoeService(shoeRepo)
-
-	grpcServer, err := grpc.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, shoeServ)
+	client, err := createUploaderClient(cfg.UploaderGRPCServerPort)
 	if err != nil {
-		userLogger.Error(ctx, err.Error())
+		shoeLogger.Error(ctx, err.Error())
+	}
+
+	shoeServ := service.NewShoeService(shoeRepo, client)
+
+	grpcServer, err := grpc_transport.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, shoeServ)
+	if err != nil {
+		shoeLogger.Error(ctx, err.Error())
 		return
 	}
 
@@ -48,7 +55,7 @@ func main() {
 	// запуск сервера
 	go func() {
 		if err = grpcServer.Start(ctx); err != nil {
-			userLogger.Error(ctx, err.Error())
+			shoeLogger.Error(ctx, err.Error())
 		}
 	}()
 
@@ -56,10 +63,22 @@ func main() {
 
 	err = grpcServer.Stop(ctx)
 	if err != nil {
-		userLogger.Error(ctx, err.Error())
+		shoeLogger.Error(ctx, err.Error())
 	}
-	userLogger.Info(ctx, "Server stopped")
+	shoeLogger.Info(ctx, "Server stopped")
 	fmt.Println("Server stopped")
 
 	//TODO написать доки к функциям
+}
+
+func createUploaderClient(port int) (uploaderv1.FileUploaderClient, error) {
+	// TODO в конфиг uploader
+	conn, err := grpc.Dial(fmt.Sprintf("uploader:%d", port), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+
+	client := uploaderv1.NewFileUploaderClient(conn)
+
+	return client, nil
 }
