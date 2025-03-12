@@ -28,6 +28,19 @@ services:
     networks:
       - app-network
 
+  uploader:
+    build: ./file_upload_service
+    container_name: uploader
+    env_file:
+      - file_upload_service/.env
+    ports:
+      - "${GRPC_UPLOADER_PORT}:${GRPC_UPLOADER_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
   postgres:
     image: postgres:15-alpine
     container_name: postgres_container

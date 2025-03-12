@@ -122,7 +122,7 @@ func (r *containerRoutes) UpdateUserInfo(c echo.Context) error {
 	// достаём access token
 	token := jwtpkg.ExtractToken(c)
 	if token == "" {
-		errorResponse(c, http.StatusBadRequest, "bad request")
+		errorResponse(c, http.StatusUnauthorized, "token is required")
 
 		return fmt.Errorf("%s: %s", op, "token is required")
 	}
@@ -130,7 +130,7 @@ func (r *containerRoutes) UpdateUserInfo(c echo.Context) error {
 	// валидируем токен и достаём id пользователя
 	userId, err := jwtPkg.ValidateTokenAndGetUserId(token)
 	if err != nil {
-		errorResponse(c, http.StatusUnauthorized, "bad request")
+		errorResponse(c, http.StatusUnauthorized, "wrong token")
 
 		return fmt.Errorf("%s: %s", op, err)
 	}
