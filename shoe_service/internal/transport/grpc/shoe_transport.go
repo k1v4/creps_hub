@@ -48,12 +48,17 @@ func (s *ShoeService) AddShoe(ctx context.Context, req *shoev1.AddShoeRequest) (
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
 
+	imageName := req.GetImageName()
+	if len([]rune(imageName)) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "image name is empty")
+	}
+
 	imageData := req.GetImageData()
 	if len(imageData) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
-	shoeId, err := s.service.AddShoe(ctx, userId, name, imageData)
+	shoeId, err := s.service.AddShoe(ctx, userId, imageName, imageData)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -152,12 +157,17 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, req *shoev1.UpdateShoeRequ
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
+	newFileName := req.GetNewFileName()
+	if len([]rune(newFileName)) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "new file name is empty")
+	}
+
 	shoeId := req.GetShoeId()
 	if shoeId <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "wrong shoe id")
 	}
 
-	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, name, imageData)
+	shoe, err := s.service.UpdateShoe(ctx, shoeId, userId, newFileName, imageData)
 	if err != nil {
 		if errors.Is(err, service.ErrShoeNotFound) {
 			return nil, status.Error(codes.NotFound, "shoe not found")
