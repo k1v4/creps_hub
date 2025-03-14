@@ -41,6 +41,19 @@ services:
     networks:
       - app-network
 
+  articles:
+    build: ./article_service
+    container_name: articles
+    env_file:
+      - article_service/.env
+    ports:
+      - "${REST_ARTICLE_PORT}:${REST_ARTICLE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
   postgres:
     image: postgres:15-alpine
     container_name: postgres_container

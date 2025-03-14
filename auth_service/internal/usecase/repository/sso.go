@@ -13,8 +13,6 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-const defaultEntityCap = 64
-
 type AuthRepository struct {
 	*postgres.Postgres
 }
