@@ -1,49 +1,76 @@
 package main
 
 import (
+	"article_service/internal/config"
+	v1 "article_service/internal/controller/http/v1"
+	"article_service/internal/usecase"
+	"article_service/internal/usecase/repository"
+	"article_service/pkg/DataBase/postgres"
+	"article_service/pkg/httpserver"
+	"article_service/pkg/logger"
 	"context"
 	"fmt"
-	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
-	"google.golang.org/grpc"
-	"log"
+	"github.com/labstack/echo/v4"
 	"os"
-	"time"
+	"os/signal"
+	"strconv"
+	"syscall"
 )
 
 func main() {
-	fileData, err := os.ReadFile("motivation.png")
-	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
+	ctx := context.Background()
+
+	articleLogger := logger.NewLogger()
+	ctx = context.WithValue(ctx, logger.LoggerKey, articleLogger)
+
+	cfg := config.MustLoadConfig()
+	if cfg == nil {
+		panic("load config fail")
 	}
 
-	// Теперь fileData — это []byte, который можно передать в gRPC запрос
-	//log.Printf("File data: %v", fileData)
+	articleLogger.Info(ctx, "read config successfully")
 
-	conn, err := grpc.Dial(":50053", grpc.WithInsecure())
+	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		cfg.DBConfig.UserName,
+		cfg.DBConfig.Password,
+		cfg.DBConfig.Host,
+		cfg.DBConfig.Port,
+		cfg.DBConfig.DbName,
+	)
+
+	pg, err := postgres.New(url, postgres.MaxPoolSize(cfg.DBConfig.PoolMax))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		articleLogger.Error(ctx, fmt.Sprintf("app - Run - postgres.New: %s", err))
 	}
-	defer conn.Close()
+	defer pg.Close()
 
-	client := uploaderv1.NewFileUploaderClient(conn)
+	articleLogger.Info(ctx, "connected to database successfully")
 
-	time.Sleep(20 * time.Second)
+	authRepo := repository.NewArticleRepository(pg)
 
-	response, err := client.UploadFile(context.Background(), &uploaderv1.ImageUploadRequest{
-		ImageData: fileData,
-		FileName:  "motivation.png",
-	})
+	authUseCase := usecase.NewArticleUseCase(authRepo)
+
+	handler := echo.New()
+
+	v1.NewRouter(handler, articleLogger, authUseCase)
+
+	httpServer := httpserver.New(handler, httpserver.Port(strconv.Itoa(cfg.RestServerPort)))
+
+	// signal for graceful shutdown
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case s := <-interrupt:
+		articleLogger.Info(ctx, "app-Run-signal: "+s.String())
+	case err = <-httpServer.Notify():
+		articleLogger.Error(ctx, fmt.Sprintf("app-Run-httpServer.Notify: %s", err))
+	}
+
+	// shutdown
+	err = httpServer.Shutdown()
 	if err != nil {
-		panic(err)
+		articleLogger.Error(ctx, fmt.Sprintf("app-Run-httpServer.Shutdown: %s", err))
 	}
-	fmt.Println(response)
 
-	//resp, err := client.DeleteFile(context.Background(), &uploaderv1.ImageDeleteRequest{
-	//	Url: "https://82a3fa46-643f-4a21-8a10-c2889596892b.selstorage.ru/motivation.png",
-	//})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//fmt.Println(response)
 }

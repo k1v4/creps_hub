@@ -36,10 +36,10 @@ func (a *ArticleUseCase) FindArticle(ctx context.Context, id int) (entity.Articl
 	return articleByID, nil
 }
 
-func (a *ArticleUseCase) DeleteArticle(ctx context.Context, id int) (bool, error) {
+func (a *ArticleUseCase) DeleteArticle(ctx context.Context, articleId, authorId int) (bool, error) {
 	const op = "ArticleUseCase.DeleteArticle"
 
-	err := a.repo.DeleteArticle(ctx, id)
+	err := a.repo.DeleteArticle(ctx, articleId, authorId)
 	if err != nil {
 		return false, fmt.Errorf("%s: %w", op, err)
 	}

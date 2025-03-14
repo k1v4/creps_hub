@@ -94,10 +94,13 @@ func (a *ArticleRepository) FindAllArticle(ctx context.Context, limit, offset ui
 	return articles, nil
 }
 
-func (a *ArticleRepository) DeleteArticle(ctx context.Context, id int) error {
+func (a *ArticleRepository) DeleteArticle(ctx context.Context, articleId, authorId int) error {
 	const op = "ArticleRepository.DeleteArticle"
 
-	s, args, err := a.Builder.Delete("articles").Where(sq.Eq{"id": id}).ToSql()
+	s, args, err := a.Builder.Delete("articles").
+		Where(sq.Eq{"article_id": articleId}).
+		Where(sq.Eq{"author_id": authorId}).
+		ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
