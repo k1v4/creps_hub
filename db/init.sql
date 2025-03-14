@@ -1,13 +1,13 @@
 CREATE TABLE "articles" (
                             "article_id" serial PRIMARY KEY,
                             "author_id" integer,
-                            "publication_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            "publication_date" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                             "name" varchar(100),
                             "text" text
 );
 
 CREATE TABLE "users" (
-                         "articleId" serial PRIMARY KEY,
+                         "id" serial PRIMARY KEY,
                          "email" varchar(50) UNIQUE,
                          "password" text,
                          "username" varchar(50) UNIQUE,
@@ -19,28 +19,28 @@ CREATE INDEX IF NOT EXISTS idx_email_users ON users (email);
 CREATE INDEX IF NOT EXISTS idx_username_users ON users (username);
 
 CREATE TABLE "shoes" (
-                         "articleId" serial PRIMARY KEY,
+                         "id" serial PRIMARY KEY,
                          "user_id" integer,
                          "name" text,
                          "image_url" text
 );
 
 CREATE TABLE "releases" (
-                            "articleId" serial PRIMARY KEY,
+                            "id" serial PRIMARY KEY,
                             "date" timestamp,
                             "name" text
 );
 
 CREATE TABLE "access_levels" (
-                                 "articleId" serial PRIMARY KEY,
+                                 "id" serial PRIMARY KEY,
                                  "level_name" varchar(20)
 );
 
-ALTER TABLE "users" ADD FOREIGN KEY ("access_id") REFERENCES "access_levels" ("articleId");
+ALTER TABLE "users" ADD FOREIGN KEY ("access_id") REFERENCES "access_levels" ("id");
 
-ALTER TABLE "articles" ADD FOREIGN KEY ("author_id") REFERENCES "users" ("articleId");
+ALTER TABLE "articles" ADD FOREIGN KEY ("author_id") REFERENCES "users" ("id");
 
-ALTER TABLE "shoes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("articleId");
+ALTER TABLE "shoes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 
 INSERT INTO "access_levels"(level_name) VALUES ('user');

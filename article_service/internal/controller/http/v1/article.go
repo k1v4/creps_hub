@@ -31,7 +31,7 @@ func newArticleRoutes(handler *echo.Group, t usecase.IArticleService, l logger.L
 	handler.DELETE("/articles/:id", r.DeleteArticle)
 
 	// GET /api/v1/articles?limit=5&offset=0
-	handler.GET("/v1/articles", r.ListArticles)
+	handler.GET("/articles", r.ListArticles)
 }
 
 func (r *containerRoutes) ListArticles(c echo.Context) error {

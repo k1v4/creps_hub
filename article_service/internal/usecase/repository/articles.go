@@ -42,7 +42,7 @@ func (a *ArticleRepository) FindArticleByID(ctx context.Context, id int) (entity
 
 	s, args, err := a.Builder.Select("*").
 		From("articles").
-		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"article_id": id}).
 		ToSql()
 	if err != nil {
 		return entity.Article{}, fmt.Errorf("%s: %w", op, err)
