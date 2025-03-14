@@ -21,8 +21,8 @@ func (r *ReleaseRepository) AddRelease(ctx context.Context, name string, date ti
 	const op = "repository.AddRelease"
 
 	s, args, err := r.Builder.Insert("releases").
-		Columns("name", "date", "release").
-		Values(name, date, date).Suffix("RETURNING id").
+		Columns("name", "date").
+		Values(name, date).Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -87,7 +87,7 @@ func (r *ReleaseRepository) GetRelease(ctx context.Context, id int) (entity.Rele
 	}
 
 	var release entity.Release
-	err = r.Pool.QueryRow(ctx, s, args...).Scan(&release.Id, &release.Name, &release.ReleaseDate)
+	err = r.Pool.QueryRow(ctx, s, args...).Scan(&release.Id, &release.ReleaseDate, &release.Name)
 	if err != nil {
 		return entity.Release{}, fmt.Errorf("%s: %w", op, err)
 	}

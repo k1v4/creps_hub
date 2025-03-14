@@ -58,7 +58,7 @@ func (r *releasesRoutes) getRelease(c echo.Context) error {
 
 	release, err := r.t.GetRelease(ctx, releaseIdInt)
 	if err != nil {
-		errorResponse(c, http.StatusNotFound, "release not found")
+		errorResponse(c, http.StatusInternalServerError, "internal error")
 
 		return fmt.Errorf("%s: %s", op, err)
 	}
@@ -177,6 +177,8 @@ func (r *releasesRoutes) addRelease(c echo.Context) error {
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	fmt.Println(u.ReleaseDate)
 
 	layout := "2006-01-02"
 
