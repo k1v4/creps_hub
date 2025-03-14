@@ -22,7 +22,7 @@ func (a *ArticleRepository) AddArticle(ctx context.Context, authorId int, name s
 	s, args, err := a.Builder.Insert("articles").
 		Columns("author_id", "name", "text").
 		Values(authorId, name, content).
-		Suffix("RETURNING id").
+		Suffix("RETURNING article_id").
 		ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)

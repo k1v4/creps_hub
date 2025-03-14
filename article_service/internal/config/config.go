@@ -4,16 +4,12 @@ import (
 	"article_service/pkg/DataBase/postgres"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
-	"time"
 )
 
 type Config struct {
 	postgres.DBConfig
 
-	GRPCServerPort  int           `env:"GRPC_SERVER_PORT" env-description:"grpc server port" env-default:"50051"`
-	RestServerPort  int           `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8080"`
-	TokenTTL        time.Duration `env:"TOKEN_TTL" env-default:"1h"`
-	RefreshTokenTTL time.Duration `env:"REFRESH_TOKEN_TTL" env-default:"24h"`
+	RestServerPort int `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8080"`
 }
 
 func MustLoadConfig() *Config {
