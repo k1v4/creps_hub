@@ -7,12 +7,12 @@
 </head>
 <body>
 <h1>Add Shoe</h1>
-<form articleId="addShoeForm">
+<form id="addShoeForm">
     <label for="name">Shoe Name:</label>
-    <input type="text" articleId="name" name="name" required><br><br>
+    <input type="text" id="name" name="name" required><br><br>
 
     <label for="image">Shoe Image:</label>
-    <input type="file" articleId="image" name="image" accept="image/*" required><br><br>
+    <input type="file" id="image" name="image" accept="image/*" required><br><br>
 
     <button type="submit">Add Shoe</button>
 </form>
@@ -28,7 +28,7 @@
         const imageData = await readFileAsBase64(imageFile);
 
         // JWT токен (замените на ваш токен)
-        const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNodmlrMUB5YW5kZXgucnUiLCJleHAiOjE3NDE3NzcyODIsImlkIjoxfQ.QUQ1tTDrajultOkR3dVrl434yGyLgk0DYq8CW2Ceqog';
+        const jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAbWFpbC5ydSIsImV4cCI6MTc0MjExOTc1MSwiaWQiOjN9.Z2JriITX12NAttBvQhBosmZGMMJtm5bOvJO4NybbH_M';
 
         // Отправка POST-запроса
         try {
