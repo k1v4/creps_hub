@@ -14,8 +14,8 @@ type DeleteArticleResponse struct {
 }
 
 type PaginatedResponse struct {
-	Items  []Article `json:"items"`
-	Total  int       `json:"total"`
-	Limit  int       `json:"limit"`
-	Offset int       `json:"offset"`
+	Items  []ArticleUser `json:"items"`
+	Total  int           `json:"total"`
+	Limit  int           `json:"limit"`
+	Offset int           `json:"offset"`
 }

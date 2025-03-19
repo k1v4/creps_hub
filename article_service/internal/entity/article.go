@@ -13,6 +13,14 @@ type Article struct {
 	Text            string    `json:"text"`
 }
 
+type ArticleUser struct {
+	ID              int       `json:"id"`
+	PublicationDate time.Time `json:"publication_date"`
+	Name            string    `json:"name"`
+	Text            string    `json:"text"`
+	AuthorUsername  string    `json:"username"`
+}
+
 func (o *Article) MarshalBinary() ([]byte, error) {
 	return json.Marshal(o)
 }

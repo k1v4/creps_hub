@@ -32,6 +32,9 @@ func newArticleRoutes(handler *echo.Group, t usecase.IArticleService, l logger.L
 
 	// GET /api/v1/articles?limit=5&offset=0
 	handler.GET("/articles", r.ListArticles)
+
+	// GET /api/v1/user_articles
+	handler.GET("/user_articles", r.GetArticlesByUser)
 }
 
 func (r *containerRoutes) ListArticles(c echo.Context) error {
@@ -184,4 +187,34 @@ func (r *containerRoutes) GetArticle(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, findArticle)
+}
+
+func (r *containerRoutes) GetArticlesByUser(c echo.Context) error {
+	const op = "v1.GetArticlesByUser"
+
+	ctx := c.Request().Context()
+
+	token := jwtpkg.ExtractToken(c)
+	if token == "" {
+		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
+
+		return fmt.Errorf("%s: %s", op, "token is required")
+	}
+
+	// получаем user id
+	userId, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
+
+		return fmt.Errorf("%s: %s", op, err)
+	}
+
+	allArticleByUser, err := r.t.FindAllArticleByUser(ctx, userId)
+	if err != nil {
+		errorResponse(c, http.StatusInternalServerError, "bad request")
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return c.JSON(http.StatusOK, allArticleByUser)
 }

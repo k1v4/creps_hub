@@ -47,10 +47,21 @@ func (a *ArticleUseCase) DeleteArticle(ctx context.Context, articleId, authorId 
 	return true, nil
 }
 
-func (a *ArticleUseCase) FindAllArticle(ctx context.Context, limit, offset int) ([]entity.Article, error) {
+func (a *ArticleUseCase) FindAllArticle(ctx context.Context, limit, offset int) ([]entity.ArticleUser, error) {
 	const op = "ArticleUseCase.FindAllArticle"
 
 	allArticle, err := a.repo.FindAllArticle(ctx, uint64(limit), uint64(offset))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return allArticle, nil
+}
+
+func (a *ArticleUseCase) FindAllArticleByUser(ctx context.Context, userId int) ([]entity.Article, error) {
+	const op = "ArticleUseCase.FindAllArticle"
+
+	allArticle, err := a.repo.FindAllArticlesByUser(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
