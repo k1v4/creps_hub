@@ -15,8 +15,8 @@ CREATE TABLE "users" (
                          "surname" text,
                          "access_id" integer DEFAULT 1
 );
-CREATE INDEX IF NOT EXISTS idx_email_users ON users (email);
-CREATE INDEX IF NOT EXISTS idx_username_users ON users (username);
+CREATE INDEX idx_email_users ON users USING hash (email);
+CREATE INDEX idx_username_users ON users USING hash (username);
 
 CREATE TABLE "shoes" (
                          "id" serial PRIMARY KEY,

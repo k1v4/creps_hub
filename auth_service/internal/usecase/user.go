@@ -45,8 +45,6 @@ func (s *AuthUseCase) Login(ctx context.Context, email string, password string) 
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	fmt.Println(string(user.Password), string(passHash), password)
 	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			fmt.Println(err)

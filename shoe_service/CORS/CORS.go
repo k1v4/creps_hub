@@ -11,10 +11,13 @@ func Settings() *cors.Cors {
 		AllowedOrigins: []string{
 			"http://localhost:63342",
 			"http://localhost:63342/creps_hub/index.html?_ijt=ar5hg8rk35foclss6l26fbfcrg&_ij_reload=RELOAD_ON_SAVE",
+			"http://localhost:3000",
 		},
 		AllowedMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
 		},
 		AllowedHeaders: []string{ // получаем с фронта заголовок
 			"Refresh-token",
