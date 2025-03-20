@@ -122,7 +122,7 @@ func (a *ArticleUseCase) processImages(ctx context.Context, content string) (str
 		fmt.Println(image.GetUrl())
 
 		// Заменяем base64 на URL изображения
-		content = strings.Replace(content, match[0], image.GetUrl(), 1)
+		content = strings.Replace(content, match[0], fmt.Sprintf(`%s"/`, image.GetUrl()), 1)
 
 		fmt.Println(content)
 	}
