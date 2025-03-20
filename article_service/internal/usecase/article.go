@@ -4,8 +4,10 @@ import (
 	"article_service/internal/entity"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
+	"github.com/redis/go-redis/v9"
 	"regexp"
 	"strings"
 	"time"
@@ -14,12 +16,14 @@ import (
 type ArticleUseCase struct {
 	repo   IArticleRepository
 	client uploaderv1.FileUploaderClient
+	cache  *redis.Client
 }
 
-func NewArticleUseCase(repo IArticleRepository, client uploaderv1.FileUploaderClient) *ArticleUseCase {
+func NewArticleUseCase(repo IArticleRepository, client uploaderv1.FileUploaderClient, cache *redis.Client) *ArticleUseCase {
 	return &ArticleUseCase{
 		repo:   repo,
 		client: client,
+		cache:  cache,
 	}
 }
 
@@ -51,11 +55,19 @@ func (a *ArticleUseCase) AddArticle(ctx context.Context, authorId int, title, co
 
 func (a *ArticleUseCase) FindArticle(ctx context.Context, id int) (entity.Article, error) {
 	const op = "ArticleUseCase.FindArticle"
+	var res entity.Article
+
+	err := a.cache.Get(ctx, fmt.Sprintf("%d", id)).Scan(&res)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return res, fmt.Errorf("%s: %w", op, err)
+	}
 
 	articleByID, err := a.repo.FindArticleByID(ctx, id)
 	if err != nil {
 		return entity.Article{}, fmt.Errorf("%s: %w", op, err)
 	}
+
+	a.cache.Set(ctx, fmt.Sprintf("%d", id), res, 15*time.Minute)
 
 	return articleByID, nil
 }

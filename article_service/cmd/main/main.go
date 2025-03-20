@@ -6,6 +6,7 @@ import (
 	"article_service/internal/usecase"
 	"article_service/internal/usecase/repository"
 	"article_service/pkg/DataBase/postgres"
+	"article_service/pkg/DataBase/redis"
 	"article_service/pkg/httpserver"
 	"article_service/pkg/logger"
 	"context"
@@ -55,7 +56,12 @@ func main() {
 		articleLogger.Error(ctx, err.Error())
 	}
 
-	authUseCase := usecase.NewArticleUseCase(authRepo, client)
+	clientRedis, err := redis.NewClient(ctx, cfg.RedisConfig)
+	if err != nil {
+		articleLogger.Error(ctx, "redis client init fail")
+	}
+	
+	authUseCase := usecase.NewArticleUseCase(authRepo, client, clientRedis)
 
 	handler := echo.New()
 

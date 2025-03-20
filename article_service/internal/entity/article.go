@@ -31,6 +31,14 @@ func (o *Article) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, o)
 }
 
+func (oa *ArticleUser) MarshalBinary() ([]byte, error) {
+	return json.Marshal(oa)
+}
+
+func (oa *ArticleUser) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, oa)
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
