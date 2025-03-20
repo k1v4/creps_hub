@@ -1,8 +1,10 @@
 package entity
 
 type PostArticleRequest struct {
-	Title   string `json:"name"`
-	Content string `json:"text"`
+	Title     string `json:"name"`
+	Content   string `json:"text"`
+	ImageName string `json:"image_name"`
+	ImageData []byte `json:"image_data"`
 }
 
 type PostArticleResponse struct {

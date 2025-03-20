@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
 	"os"
 	"os/signal"
 	"release_service/internal/config"
@@ -48,7 +50,12 @@ func main() {
 
 	authRepo := repository.NewReleaseRepository(pg)
 
-	authUseCase := usecase.NewReleaseUseCase(authRepo)
+	client, err := createUploaderClient(cfg.UploaderGRPCServerPort)
+	if err != nil {
+		releaseLogger.Error(ctx, err.Error())
+	}
+
+	authUseCase := usecase.NewReleaseUseCase(authRepo, client)
 
 	handler := echo.New()
 
@@ -73,4 +80,16 @@ func main() {
 		releaseLogger.Error(ctx, fmt.Sprintf("app-Run-httpServer.Shutdown: %s", err))
 	}
 
+}
+
+func createUploaderClient(port int) (uploaderv1.FileUploaderClient, error) {
+	// TODO в конфиг uploader
+	conn, err := grpc.Dial(fmt.Sprintf("uploader:%d", port), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+
+	client := uploaderv1.NewFileUploaderClient(conn)
+
+	return client, nil
 }

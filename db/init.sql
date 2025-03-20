@@ -3,7 +3,8 @@ CREATE TABLE "articles" (
                             "author_id" integer,
                             "publication_date" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                             "name" varchar(100),
-                            "text" text
+                            "text" text,
+                            "image_url" text
 );
 
 CREATE TABLE "users" (
@@ -28,7 +29,7 @@ CREATE TABLE "shoes" (
 CREATE TABLE "releases" (
                             "id" serial PRIMARY KEY,
                             "date" timestamp,
-                            "name" text
+                            "name" text,
 );
 
 CREATE TABLE "access_levels" (
@@ -44,22 +45,3 @@ ALTER TABLE "shoes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 
 INSERT INTO "access_levels"(level_name) VALUES ('user');
-
-
--- Создаем функцию, которая будет использоваться в триггере
--- CREATE OR REPLACE FUNCTION set_default_access_id()
---     RETURNS TRIGGER AS $$
--- BEGIN
---     -- Если access_id не указан, устанавливаем его равным 1
---     IF NEW.access_id IS NULL THEN
---         NEW.access_id := 1;
---     END IF;
---     RETURN NEW;
--- END;
--- $$ LANGUAGE plpgsql;
---
--- -- Создаем триггер, который будет вызывать функцию перед вставкой новой записи в таблицу users
--- CREATE TRIGGER trg_set_default_access_id
---     BEFORE INSERT ON users
---     FOR EACH ROW
--- EXECUTE FUNCTION set_default_access_id();

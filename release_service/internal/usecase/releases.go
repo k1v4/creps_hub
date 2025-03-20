@@ -3,18 +3,22 @@ package usecase
 import (
 	"context"
 	"fmt"
+	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
 	"release_service/internal/entity"
-	"release_service/pkg/translate"
 	"strings"
 	"time"
 )
 
 type ReleaseUseCase struct {
-	repo IReleaseRepository
+	repo   IReleaseRepository
+	client uploaderv1.FileUploaderClient
 }
 
-func NewReleaseUseCase(repo IReleaseRepository) *ReleaseUseCase {
-	return &ReleaseUseCase{repo: repo}
+func NewReleaseUseCase(repo IReleaseRepository, client uploaderv1.FileUploaderClient) *ReleaseUseCase {
+	return &ReleaseUseCase{
+		repo:   repo,
+		client: client,
+	}
 }
 
 func (r *ReleaseUseCase) AddRelease(ctx context.Context, name string, releaseDate time.Time) (int, error) {
@@ -69,7 +73,7 @@ func (r *ReleaseUseCase) UpdateRelease(ctx context.Context, id int, name string,
 func (r *ReleaseUseCase) GetReleasesByMonth(ctx context.Context, month string) ([]entity.Release, error) {
 	const op = "Usecase.GetReleasesByMonth"
 
-	engMonth := translate.Translate(strings.ToLower(month))
+	engMonth := strings.ToLower(month)
 
 	byMonth, err := r.repo.GetReleasesByMonth(ctx, engMonth)
 	if err != nil {

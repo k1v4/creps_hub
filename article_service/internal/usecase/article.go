@@ -4,20 +4,33 @@ import (
 	"article_service/internal/entity"
 	"context"
 	"fmt"
+	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
 )
 
 type ArticleUseCase struct {
-	repo IArticleRepository
+	repo   IArticleRepository
+	client uploaderv1.FileUploaderClient
 }
 
-func NewArticleUseCase(repo IArticleRepository) *ArticleUseCase {
-	return &ArticleUseCase{repo: repo}
+func NewArticleUseCase(repo IArticleRepository, client uploaderv1.FileUploaderClient) *ArticleUseCase {
+	return &ArticleUseCase{
+		repo:   repo,
+		client: client,
+	}
 }
 
-func (a *ArticleUseCase) AddArticle(ctx context.Context, authorId int, title, content string) (int, error) {
+func (a *ArticleUseCase) AddArticle(ctx context.Context, authorId int, title, content, imageName string, imageData []byte) (int, error) {
 	const op = "ArticleUseCase.AddArticle"
 
-	articleId, err := a.repo.AddArticle(ctx, authorId, title, content)
+	image, err := a.client.UploadFile(ctx, &uploaderv1.ImageUploadRequest{
+		ImageData: imageData,
+		FileName:  imageName,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	articleId, err := a.repo.AddArticle(ctx, authorId, title, content, image.GetUrl())
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

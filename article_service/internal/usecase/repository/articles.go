@@ -16,12 +16,12 @@ func NewArticleRepository(pg *postgres.Postgres) *ArticleRepository {
 	return &ArticleRepository{pg}
 }
 
-func (a *ArticleRepository) AddArticle(ctx context.Context, authorId int, name string, content string) (int, error) {
+func (a *ArticleRepository) AddArticle(ctx context.Context, authorId int, name string, content, imageUrl string) (int, error) {
 	const op = "ArticleRepository.AddArticle"
 
 	s, args, err := a.Builder.Insert("articles").
-		Columns("author_id", "name", "text").
-		Values(authorId, name, content).
+		Columns("author_id", "name", "text", "image_url").
+		Values(authorId, name, content, imageUrl).
 		Suffix("RETURNING article_id").
 		ToSql()
 	if err != nil {
@@ -54,7 +54,9 @@ func (a *ArticleRepository) FindArticleByID(ctx context.Context, id int) (entity
 			&article.AuthorID,
 			&article.PublicationDate,
 			&article.Name,
-			&article.Text)
+			&article.Text,
+			&article.ImageUrl,
+		)
 	if err != nil {
 		return entity.Article{}, fmt.Errorf("%s: %w", op, err)
 	}
@@ -70,6 +72,7 @@ func (a *ArticleRepository) FindAllArticle(ctx context.Context, limit, offset ui
 		"articles.publication_date",
 		"articles.name AS article_name",
 		"articles.text",
+		"articles.image_url",
 		"users.username",
 	).
 		From("articles").
@@ -90,7 +93,7 @@ func (a *ArticleRepository) FindAllArticle(ctx context.Context, limit, offset ui
 	var articles []entity.ArticleUser
 	for rows.Next() {
 		var article entity.ArticleUser
-		err = rows.Scan(&article.ID, &article.PublicationDate, &article.Name, &article.Text, &article.AuthorUsername)
+		err = rows.Scan(&article.ID, &article.PublicationDate, &article.Name, &article.Text, &article.ImageUrl, &article.AuthorUsername)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
@@ -140,7 +143,8 @@ func (a *ArticleRepository) FindAllArticlesByUser(ctx context.Context, userId in
 	var articles []entity.Article
 	for rows.Next() {
 		var article entity.Article
-		err = rows.Scan(&article.ID, &article.AuthorID, &article.PublicationDate, &article.Name, &article.Text)
+		err = rows.Scan(&article.ID, &article.AuthorID, &article.PublicationDate,
+			&article.Name, &article.Text, &article.ImageUrl)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}

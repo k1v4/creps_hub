@@ -9,7 +9,8 @@ import (
 type Config struct {
 	postgres.DBConfig
 
-	RestServerPort int `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8080"`
+	RestServerPort         int `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8080"`
+	UploaderGRPCServerPort int `env:"UPLOADER_GRPC_SERVER_PORT" env-default:"50053"`
 }
 
 func MustLoadConfig() *Config {

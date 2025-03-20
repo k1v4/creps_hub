@@ -22,7 +22,8 @@ func (r *ReleaseRepository) AddRelease(ctx context.Context, name string, date ti
 
 	s, args, err := r.Builder.Insert("releases").
 		Columns("name", "date").
-		Values(name, date).Suffix("RETURNING id").
+		Values(name, date).
+		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)

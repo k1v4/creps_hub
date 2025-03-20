@@ -36,7 +36,13 @@ func (s *UploadServer) UploadImage(ctx context.Context, fileName string, imageDa
 	imageType := arr[len(arr)-1]
 	arr = arr[:len(arr)-1]
 
-	urlImage, err := s.upRepo.UploadImage(ctx, fmt.Sprintf("%s_%s.%s", strings.Join(arr, "."), formattedTime, imageType), imageData)
+	urlImage, err := s.upRepo.UploadImage(ctx,
+		fmt.Sprintf("%s_%s.%s", strings.Join(arr, "."),
+			formattedTime,
+			imageType,
+		),
+		imageData,
+	)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}

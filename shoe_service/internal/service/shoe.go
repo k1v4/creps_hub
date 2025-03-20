@@ -33,12 +33,12 @@ func NewShoeService(shoeProvider ShoeProvider, client uploaderv1.FileUploaderCli
 	}
 }
 
-func (s *ShoeService) AddShoe(ctx context.Context, userID int64, name string, imageData []byte) (int64, error) {
+func (s *ShoeService) AddShoe(ctx context.Context, userID int64, shoeName, fileName string, imageData []byte) (int64, error) {
 	const op = "ShoeService.AddShoe"
 
 	image, err := s.client.UploadFile(ctx, &uploaderv1.ImageUploadRequest{
 		ImageData: imageData,
-		FileName:  name,
+		FileName:  fileName,
 	})
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -49,7 +49,7 @@ func (s *ShoeService) AddShoe(ctx context.Context, userID int64, name string, im
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	shoeId, err := s.ShoeProv.AddShoe(ctx, userID, name, imageUrl)
+	shoeId, err := s.ShoeProv.AddShoe(ctx, userID, shoeName, imageUrl)
 	if err != nil {
 		// TODO доп проверки
 

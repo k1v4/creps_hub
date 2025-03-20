@@ -11,6 +11,7 @@ type Article struct {
 	PublicationDate time.Time `json:"publication_date"`
 	Name            string    `json:"name"`
 	Text            string    `json:"text"`
+	ImageUrl        string    `json:"image_url"`
 }
 
 type ArticleUser struct {
@@ -18,6 +19,7 @@ type ArticleUser struct {
 	PublicationDate time.Time `json:"publication_date"`
 	Name            string    `json:"name"`
 	Text            string    `json:"text"`
+	ImageUrl        string    `json:"image_url"`
 	AuthorUsername  string    `json:"username"`
 }
 

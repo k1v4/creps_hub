@@ -6,7 +6,7 @@ import (
 )
 
 type IArticleRepository interface {
-	AddArticle(ctx context.Context, authorId int, name string, content string) (int, error)
+	AddArticle(ctx context.Context, authorId int, name string, content, imageUrl string) (int, error)
 	FindArticleByID(ctx context.Context, id int) (entity.Article, error)
 	FindAllArticle(ctx context.Context, limit, offset uint64) ([]entity.ArticleUser, error)
 	DeleteArticle(ctx context.Context, articleId, authorId int) error
@@ -14,7 +14,7 @@ type IArticleRepository interface {
 }
 
 type IArticleService interface {
-	AddArticle(ctx context.Context, authorId int, title, content string) (int, error)
+	AddArticle(ctx context.Context, authorId int, title, content, imageName string, imageData []byte) (int, error)
 	FindArticle(ctx context.Context, id int) (entity.Article, error)
 	DeleteArticle(ctx context.Context, articleId, authorId int) (bool, error)
 	FindAllArticle(ctx context.Context, limit, offset int) ([]entity.ArticleUser, error)

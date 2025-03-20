@@ -14,7 +14,7 @@ import (
 )
 
 type IShoeService interface {
-	AddShoe(ctx context.Context, userID int64, name string, imageData []byte) (int64, error)
+	AddShoe(ctx context.Context, userID int64, shoeName, fileName string, imageData []byte) (int64, error)
 	GetShoe(ctx context.Context, shoeId int64) (*models.Shoe, error)
 	DeleteShoe(ctx context.Context, shoeID int64) (bool, error)
 	UpdateShoe(ctx context.Context, shoeId, userId int64, name string, imageUrl []byte) (*models.Shoe, error)
@@ -58,7 +58,7 @@ func (s *ShoeService) AddShoe(ctx context.Context, req *shoev1.AddShoeRequest) (
 		return nil, status.Error(codes.InvalidArgument, "image is required")
 	}
 
-	shoeId, err := s.service.AddShoe(ctx, userId, imageName, imageData)
+	shoeId, err := s.service.AddShoe(ctx, userId, name, imageName, imageData)
 	if err != nil {
 		//TODO добавить доп проверки
 		return nil, fmt.Errorf("%s: %w", op, err)

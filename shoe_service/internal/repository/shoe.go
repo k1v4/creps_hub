@@ -35,7 +35,7 @@ func (s *ShoeRepository) AddShoe(ctx context.Context, userID int64, name, imageU
 		QueryRow().
 		Scan(&shoeId)
 	if err != nil {
-		
+
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 

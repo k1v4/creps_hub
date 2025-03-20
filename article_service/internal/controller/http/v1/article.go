@@ -149,7 +149,7 @@ func (r *containerRoutes) PostArticle(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, errors.New("wrong len if title"))
 	}
 
-	articleId, err := r.t.AddArticle(ctx, userId, u.Title, u.Content)
+	articleId, err := r.t.AddArticle(ctx, userId, u.Title, u.Content, u.ImageName, u.ImageData)
 	if err != nil {
 		errorResponse(c, http.StatusInternalServerError, "bad request")
 
@@ -204,6 +204,13 @@ func (r *containerRoutes) GetArticlesByUser(c echo.Context) error {
 	// получаем user id
 	userId, err := jwtpkg.ValidateTokenAndGetUserId(token)
 	if err != nil {
+		fmt.Println(err, err.Error())
+		if err.Error() == "token expired" {
+			errorResponse(c, http.StatusUnauthorized, "token expired")
+
+			return fmt.Errorf("%s: %s", op, err)
+		}
+
 		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
 
 		return fmt.Errorf("%s: %s", op, err)

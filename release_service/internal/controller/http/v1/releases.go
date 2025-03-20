@@ -178,8 +178,6 @@ func (r *releasesRoutes) addRelease(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	fmt.Println(u.ReleaseDate)
-
 	layout := "2006-01-02"
 
 	date, err := time.Parse(layout, u.ReleaseDate)
