@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
+	"github.com/redis/go-redis/v9"
 	"release_service/internal/entity"
 	"strings"
 	"time"
@@ -12,12 +14,14 @@ import (
 type ReleaseUseCase struct {
 	repo   IReleaseRepository
 	client uploaderv1.FileUploaderClient
+	cache  *redis.Client
 }
 
-func NewReleaseUseCase(repo IReleaseRepository, client uploaderv1.FileUploaderClient) *ReleaseUseCase {
+func NewReleaseUseCase(repo IReleaseRepository, client uploaderv1.FileUploaderClient, cache *redis.Client) *ReleaseUseCase {
 	return &ReleaseUseCase{
 		repo:   repo,
 		client: client,
+		cache:  cache,
 	}
 }
 
@@ -45,10 +49,23 @@ func (r *ReleaseUseCase) DeleteRelease(ctx context.Context, id int) (bool, error
 
 func (r *ReleaseUseCase) GetRelease(ctx context.Context, id int) (entity.Release, error) {
 	const op = "Usecase.GetRelease"
+	var release entity.Release
 
-	release, err := r.repo.GetRelease(ctx, id)
+	err := r.cache.Get(ctx, fmt.Sprintf("%d", id)).Scan(&release)
+	if err == nil {
+		return release, nil
+	} else if err != nil && !errors.Is(err, redis.Nil) {
+		return entity.Release{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	release, err = r.repo.GetRelease(ctx, id)
 	if err != nil {
 		return entity.Release{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	statusCmd := r.cache.Set(ctx, fmt.Sprintf("%d", id), &release, 1*time.Hour)
+	if statusCmd.Err() != nil {
+		return entity.Release{}, fmt.Errorf("%s: %w", op, statusCmd.Err())
 	}
 
 	return release, nil
