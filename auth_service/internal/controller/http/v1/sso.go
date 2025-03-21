@@ -54,7 +54,7 @@ func (r *containerRoutes) Auth(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, errors.New("bad request"))
 	}
 
-	accessToken, refreshToken, err := r.t.Login(ctx, u.Email, u.Password)
+	access_id, accessToken, refreshToken, err := r.t.Login(ctx, u.Email, u.Password)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidCredentials) {
 			errorResponse(c, http.StatusUnauthorized, "invalid credentials")
@@ -76,6 +76,7 @@ func (r *containerRoutes) Auth(c echo.Context) error {
 	return c.JSON(http.StatusOK, entity.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		AccessId:     access_id,
 	})
 }
 

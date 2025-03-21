@@ -187,7 +187,7 @@ func (r *releasesRoutes) addRelease(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	releaseId, err := r.t.AddRelease(ctx, u.Name, date)
+	releaseId, err := r.t.AddRelease(ctx, u.Name, date, u.ImageName, u.ImageData)
 	if err != nil {
 		errorResponse(c, http.StatusInternalServerError, "internal error")
 

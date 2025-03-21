@@ -12,6 +12,8 @@ type UpdateRequest struct {
 type AddRequest struct {
 	Name        string `json:"name"`
 	ReleaseDate string `json:"release_date"`
+	ImageName   string `json:"image_name"`
+	ImageData   []byte `json:"image_data"`
 }
 
 type AddResponse struct {

@@ -28,8 +28,9 @@ CREATE TABLE "shoes" (
 
 CREATE TABLE "releases" (
                             "id" serial PRIMARY KEY,
-                            "date" timestamp,
+                            "date" timestamp UNIQUE,
                             "name" text,
+                            "image_url" text
 );
 
 CREATE TABLE "access_levels" (
@@ -45,3 +46,4 @@ ALTER TABLE "shoes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 
 INSERT INTO "access_levels"(level_name) VALUES ('user');
+INSERT INTO "access_levels"(level_name) VALUES ('admin');

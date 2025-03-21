@@ -33,38 +33,38 @@ func NewAuthUseCase(repo ISsoRepository, accessTokenTTL, refreshTokenTTL time.Du
 
 // Login checks is user already register and sent access-token
 // if user is not exist, Login will return error
-func (s *AuthUseCase) Login(ctx context.Context, email string, password string) (string, string, error) {
+func (s *AuthUseCase) Login(ctx context.Context, email string, password string) (int, string, string, error) {
 	const op = "service.Login"
 
 	user, err := s.repo.GetUser(ctx, email)
 	if err != nil {
 		if errors.Is(err, DataBase.ErrUserNotFound) {
-			return "", "", ErrNoUser
+			return 0, "", "", ErrNoUser
 		}
 
-		return "", "", fmt.Errorf("%s: %w", op, err)
+		return 0, "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	if err = bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			fmt.Println(err)
-			return "", "", ErrInvalidCredentials
+			return 0, "", "", ErrInvalidCredentials
 		}
 
-		return "", "", fmt.Errorf("%s: %w", op, err)
+		return 0, "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	tokenAccess, err := jwtpkg.NewAccessToken(user, s.AccessTokenTTL)
 	if err != nil {
-		return "", "", fmt.Errorf("%s: %w", op, err)
+		return 0, "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	tokenRefresh, err := jwtpkg.NewAccessToken(user, s.RefreshTokenTTL)
 	if err != nil {
-		return "", "", fmt.Errorf("%s: %w", op, err)
+		return 0, "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return tokenAccess, tokenRefresh, nil
+	return user.AccessLevelId, tokenAccess, tokenRefresh, nil
 }
 
 // Register adds new user to app

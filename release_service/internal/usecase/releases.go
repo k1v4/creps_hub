@@ -25,10 +25,18 @@ func NewReleaseUseCase(repo IReleaseRepository, client uploaderv1.FileUploaderCl
 	}
 }
 
-func (r *ReleaseUseCase) AddRelease(ctx context.Context, name string, releaseDate time.Time) (int, error) {
+func (r *ReleaseUseCase) AddRelease(ctx context.Context, name string, releaseDate time.Time, imageName string, imageData []byte) (int, error) {
 	const op = "Usecase.AddRelease"
 
-	releaseId, err := r.repo.AddRelease(ctx, name, releaseDate)
+	image, err := r.client.UploadFile(ctx, &uploaderv1.ImageUploadRequest{
+		ImageData: imageData,
+		FileName:  imageName,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	releaseId, err := r.repo.AddRelease(ctx, name, releaseDate, image.GetUrl())
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

@@ -17,12 +17,12 @@ func NewReleaseRepository(pg *postgres.Postgres) *ReleaseRepository {
 	return &ReleaseRepository{pg}
 }
 
-func (r *ReleaseRepository) AddRelease(ctx context.Context, name string, date time.Time) (int, error) {
+func (r *ReleaseRepository) AddRelease(ctx context.Context, name string, date time.Time, imageUrl string) (int, error) {
 	const op = "repository.AddRelease"
 
 	s, args, err := r.Builder.Insert("releases").
-		Columns("name", "date").
-		Values(name, date).
+		Columns("name", "date", "image_url").
+		Values(name, date, imageUrl).
 		Suffix("RETURNING id").
 		ToSql()
 	if err != nil {
@@ -44,6 +44,7 @@ func (r *ReleaseRepository) UpdateRelease(ctx context.Context, release entity.Re
 	s, args, err := r.Builder.Update("releases").
 		Set("name", release.Name).
 		Set("date", release.ReleaseDate).
+		Set("imageUrl", release.ImageUrl).
 		Where(sq.Eq{"id": release.Id}).
 		ToSql()
 	if err != nil {
@@ -88,7 +89,7 @@ func (r *ReleaseRepository) GetRelease(ctx context.Context, id int) (entity.Rele
 	}
 
 	var release entity.Release
-	err = r.Pool.QueryRow(ctx, s, args...).Scan(&release.Id, &release.ReleaseDate, &release.Name)
+	err = r.Pool.QueryRow(ctx, s, args...).Scan(&release.Id, &release.ReleaseDate, &release.Name, &release.ImageUrl)
 	if err != nil {
 		return entity.Release{}, fmt.Errorf("%s: %w", op, err)
 	}

@@ -9,6 +9,7 @@ type Release struct {
 	Id          int       `json:"id"`
 	ReleaseDate time.Time `json:"release_date"`
 	Name        string    `json:"name"`
+	ImageUrl    string    `json:"image_url"`
 }
 
 func (o *Release) MarshalBinary() ([]byte, error) {
