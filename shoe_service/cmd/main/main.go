@@ -7,13 +7,14 @@ import (
 	"google.golang.org/grpc"
 	"os"
 	"os/signal"
+	"shoe_service/internal/config"
+	"shoe_service/internal/repository"
+	"shoe_service/internal/service"
+	grpc_transport "shoe_service/internal/transport/grpc"
+	"shoe_service/pkg/DB/postgres"
+	"shoe_service/pkg/DB/redis"
+	"shoe_service/pkg/logger"
 	"syscall"
-	"user_service/internal/config"
-	"user_service/internal/repository"
-	"user_service/internal/service"
-	grpc_transport "user_service/internal/transport/grpc"
-	"user_service/pkg/DB/postgres"
-	"user_service/pkg/logger"
 )
 
 func main() {
@@ -41,7 +42,12 @@ func main() {
 		shoeLogger.Error(ctx, err.Error())
 	}
 
-	shoeServ := service.NewShoeService(shoeRepo, client)
+	clientRedis, err := redis.NewClient(ctx, cfg.RedisConfig)
+	if err != nil {
+		shoeLogger.Error(ctx, "redis client init fail")
+	}
+
+	shoeServ := service.NewShoeService(shoeRepo, client, clientRedis)
 
 	grpcServer, err := grpc_transport.NewServer(ctx, cfg.GRPCServerPort, cfg.RestServerPort, shoeServ)
 	if err != nil {

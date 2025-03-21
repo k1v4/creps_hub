@@ -4,7 +4,7 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"user_service/pkg/logger"
+	"shoe_service/pkg/logger"
 )
 
 func ContextWithLogger(l logger.Logger) grpc.UnaryServerInterceptor {

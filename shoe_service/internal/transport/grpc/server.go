@@ -12,8 +12,8 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"user_service/CORS"
-	"user_service/pkg/logger"
+	"shoe_service/CORS"
+	"shoe_service/pkg/logger"
 )
 
 type Server struct {

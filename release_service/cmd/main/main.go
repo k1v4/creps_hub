@@ -13,6 +13,7 @@ import (
 	"release_service/internal/usecase"
 	"release_service/internal/usecase/repository"
 	"release_service/pkg/DataBase/postgres"
+	"release_service/pkg/DataBase/redis"
 	"release_service/pkg/httpserver"
 	"release_service/pkg/logger"
 	"strconv"
@@ -55,7 +56,12 @@ func main() {
 		releaseLogger.Error(ctx, err.Error())
 	}
 
-	authUseCase := usecase.NewReleaseUseCase(authRepo, client)
+	clientRedis, err := redis.NewClient(ctx, cfg.RedisConfig)
+	if err != nil {
+		releaseLogger.Error(ctx, "redis client init fail")
+	}
+
+	authUseCase := usecase.NewReleaseUseCase(authRepo, client, clientRedis)
 
 	handler := echo.New()
 

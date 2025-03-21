@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/metadata"
+	"shoe_service/internal/models"
 	"strings"
 	"time"
-	"user_service/internal/models"
 )
 
 const secret = "secret"
