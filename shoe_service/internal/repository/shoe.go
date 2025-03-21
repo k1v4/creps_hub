@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"user_service/internal/models"
-	DataBase "user_service/pkg/DB"
-	"user_service/pkg/DB/postgres"
+	"shoe_service/internal/models"
+	DataBase "shoe_service/pkg/DB"
+	"shoe_service/pkg/DB/postgres"
 )
 
 type ShoeRepository struct {

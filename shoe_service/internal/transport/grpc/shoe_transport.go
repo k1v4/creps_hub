@@ -8,9 +8,9 @@ import (
 	shoev1 "github.com/k1v4/protos/gen/shoe"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"user_service/internal/models"
-	"user_service/internal/service"
-	"user_service/pkg/jwtpkg"
+	"shoe_service/internal/models"
+	"shoe_service/internal/service"
+	"shoe_service/pkg/jwtpkg"
 )
 
 type IShoeService interface {

@@ -3,12 +3,14 @@ package config
 import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
+	"shoe_service/pkg/DB/postgres"
+	"shoe_service/pkg/DB/redis"
 	"time"
-	"user_service/pkg/DB/postgres"
 )
 
 type Config struct {
 	postgres.DBConfig
+	redis.RedisConfig
 
 	GRPCServerPort         int           `env:"GRPC_SERVER_PORT" env-description:"grpc server port" env-default:"50052"`
 	RestServerPort         int           `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8081"`

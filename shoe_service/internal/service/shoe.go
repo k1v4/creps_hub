@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
-	"user_service/internal/models"
-	DataBase "user_service/pkg/DB"
+	"github.com/redis/go-redis/v9"
+	"shoe_service/internal/models"
+	DataBase "shoe_service/pkg/DB"
+	"time"
 )
 
 var (
@@ -16,6 +19,7 @@ var (
 type ShoeService struct {
 	ShoeProv ShoeProvider
 	client   uploaderv1.FileUploaderClient
+	cache    *redis.Client
 }
 
 type ShoeProvider interface {
@@ -26,10 +30,11 @@ type ShoeProvider interface {
 	GetShoes(ctx context.Context, userId int64) (*[]models.Shoe, error)
 }
 
-func NewShoeService(shoeProvider ShoeProvider, client uploaderv1.FileUploaderClient) *ShoeService {
+func NewShoeService(shoeProvider ShoeProvider, client uploaderv1.FileUploaderClient, cache *redis.Client) *ShoeService {
 	return &ShoeService{
 		ShoeProv: shoeProvider,
 		client:   client,
+		cache:    cache,
 	}
 }
 
@@ -142,11 +147,31 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, shoeId, userId int64, name
 
 func (s *ShoeService) GetShoes(ctx context.Context, userId int64) (*[]models.Shoe, error) {
 	const op = "ShoeService.GetShoes"
+	var shoesRedis []models.Shoe
+
+	data, err := s.cache.Get(ctx, fmt.Sprintf("%d", userId)).Bytes()
+	if err == nil {
+		errMarshal := json.Unmarshal(data, &shoesRedis)
+		if errMarshal != nil {
+			return nil, fmt.Errorf("failed to unmarshal articles: %w", err)
+		}
+
+		return &shoesRedis, nil
+	} else if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, fmt.Errorf("failed to get articles from Redis: %w", err)
+	}
 
 	shoes, err := s.ShoeProv.GetShoes(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	dataSet, err := json.Marshal(shoes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal articles: %w", err)
+	}
+
+	s.cache.Set(ctx, fmt.Sprintf("%d", userId), dataSet, 10*time.Minute)
 
 	return shoes, nil
 }
