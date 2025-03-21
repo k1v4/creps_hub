@@ -4,10 +4,12 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 	"release_service/pkg/DataBase/postgres"
+	"release_service/pkg/DataBase/redis"
 )
 
 type Config struct {
 	postgres.DBConfig
+	redis.RedisConfig
 
 	RestServerPort         int `env:"REST_SERVER_PORT" env-description:"rest server port" env-default:"8080"`
 	UploaderGRPCServerPort int `env:"UPLOADER_GRPC_SERVER_PORT" env-default:"50053"`
