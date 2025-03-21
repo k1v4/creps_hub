@@ -1,11 +1,11 @@
 package jwtpkg
 
 import (
-	"auth_service/internal/entity"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"release_service/internal/entity"
 	"strings"
 	"time"
 )
@@ -29,7 +29,6 @@ func NewAccessToken(user entity.User, duration time.Duration) (string, error) {
 
 	claims["id"] = user.ID
 	claims["email"] = user.Email
-	claims["access_level_id"] = user.AccessLevelId
 	claims["exp"] = time.Now().Add(duration).Unix()
 
 	tokenString, err := token.SignedString([]byte(secret))
@@ -83,36 +82,36 @@ func RefreshAccessToken(refreshToken string, duration time.Duration) (string, er
 	return newAccessToken, nil
 }
 
-func ValidateTokenAndGetUserId(tokenString string) (int, error) {
-	// парсим токен
+func ValidateTokenAndGetUserId(tokenString string) (int, int, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// проверяем метод подписи
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	// проверяем claims
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		// извлекаем userId
 		userId, okUser := claims["id"].(float64)
 		if !okUser {
-			return 0, fmt.Errorf("userId not found in token")
+			return 0, 0, fmt.Errorf("userId not found in token")
 		}
 
-		// проверяем срок действия токена
+		accessLevelId, okAccess := claims["access_level_id"].(float64)
+		if !okAccess {
+			return 0, 0, fmt.Errorf("access_level_id not found in token")
+		}
+
 		if exp, ok := claims["exp"].(float64); ok {
 			if time.Now().Unix() > int64(exp) {
-				return 0, fmt.Errorf("token expired")
+				return 0, 0, fmt.Errorf("token expired")
 			}
 		}
 
-		return int(userId), nil
+		return int(userId), int(accessLevelId), nil
 	}
 
-	return 0, errors.New("invalid token")
+	return 0, 0, errors.New("invalid token")
 }

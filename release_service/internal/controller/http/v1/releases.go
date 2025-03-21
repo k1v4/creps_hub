@@ -6,10 +6,15 @@ import (
 	"net/http"
 	"release_service/internal/entity"
 	"release_service/internal/usecase"
+	"release_service/pkg/jwtpkg"
 	"release_service/pkg/logger"
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	admin = 2
 )
 
 type releasesRoutes struct {
@@ -170,6 +175,27 @@ func (r *releasesRoutes) addRelease(c echo.Context) error {
 	const op = "v1.AddRelease"
 
 	ctx := c.Request().Context()
+
+	token := jwtpkg.ExtractToken(c)
+	if token == "" {
+		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
+
+		return fmt.Errorf("%s: %s", op, "token is required")
+	}
+
+	// получаем user id
+	_, access_id, err := jwtpkg.ValidateTokenAndGetUserId(token)
+	if err != nil {
+		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
+
+		return fmt.Errorf("%s: %s", op, err)
+	}
+
+	if access_id != admin {
+		errorResponse(c, http.StatusUnauthorized, "Unauthorized")
+
+		return fmt.Errorf("%s", "you havent rights to use this feature")
+	}
 
 	u := new(entity.AddRequest)
 	if err := c.Bind(u); err != nil {
