@@ -1,0 +1,73 @@
+name: CI Docker Compose
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      REST_SERVER_PORT: 8082
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: creps_hub
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_TABLE: users
+      PG_POOL_MAX: 4
+      UPLOADER_GRPC_SERVER_PORT: 50053
+      REDIS_PORT: 6379
+      REDIS_HOST: redis_container
+      REDIS_PASSWORD: ""
+      REDIS_USER: root
+      REDIS_DB: 0
+      REDIS_MAX_RETRIES: 5
+      REDIS_DIAL_TIMEOUT: 5s
+      REDIS_TIMEOUT: 10s
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and start services
+        run: docker-compose up --build
+
+      - name: Wait for PostgreSQL to become healthy
+        run: |
+          for i in {1..10}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker-compose ps -q db))
+            echo "Health status: $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "PostgreSQL is healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "PostgreSQL did not become healthy in time"
+          docker-compose logs
+          exit 1
+
+      - name: Check app container status
+        run: |
+          STATUS=$(docker inspect --format='{{.State.Running}}' $(docker-compose ps -q app))
+          if [ "$STATUS" != "true" ]; then
+            echo "App container is not running"
+            docker-compose logs
+            exit 1
+          fi
+
+      - name: Show logs (on failure)
+        if: failure()
+        run: docker-compose logs
+
+      - name: Shutdown
+        run: docker-compose down
+
