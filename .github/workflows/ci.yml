@@ -54,7 +54,7 @@ jobs:
           echo "REDIS_PORT=6379" >> .env
 
       - name: Build and start services
-        run: docker-compose up --build
+        run: docker compose up --build
 
       - name: Wait for PostgreSQL to become healthy
         run: |
@@ -82,8 +82,8 @@ jobs:
 
       - name: Show logs (on failure)
         if: failure()
-        run: docker-compose logs
+        run: docker compose logs
 
       - name: Shutdown
-        run: docker-compose down
+        run: docker compose down
 
