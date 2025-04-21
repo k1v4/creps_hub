@@ -4,7 +4,6 @@ import (
 	"article_service/pkg/DataBase/postgres"
 	"article_service/pkg/DataBase/redis"
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -16,13 +15,13 @@ type Config struct {
 }
 
 func MustLoadConfig() *Config {
-	err := godotenv.Load(".env") // Явно указываем путь
-	if err != nil {
-		panic(err)
-	}
+	//err := godotenv.Load(".env") // Явно указываем путь
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	cfg := Config{}
-	err = cleanenv.ReadEnv(&cfg)
+	err := cleanenv.ReadEnv(&cfg)
 	if err != nil {
 		panic(err)
 	}

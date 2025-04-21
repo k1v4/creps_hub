@@ -135,7 +135,7 @@ func (a *AuthRepository) DeleteUser(ctx context.Context, id int) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = a.Pool.Query(ctx, s, args...)
+	_, err = a.Pool.Exec(ctx, s, args...)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

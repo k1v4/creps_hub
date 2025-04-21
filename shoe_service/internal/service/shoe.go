@@ -2,14 +2,12 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	uploaderv1 "github.com/k1v4/protos/gen/file_uploader"
 	"github.com/redis/go-redis/v9"
 	"shoe_service/internal/models"
 	DataBase "shoe_service/pkg/DB"
-	"time"
 )
 
 var (
@@ -147,31 +145,11 @@ func (s *ShoeService) UpdateShoe(ctx context.Context, shoeId, userId int64, name
 
 func (s *ShoeService) GetShoes(ctx context.Context, userId int64) (*[]models.Shoe, error) {
 	const op = "ShoeService.GetShoes"
-	var shoesRedis []models.Shoe
-
-	data, err := s.cache.Get(ctx, fmt.Sprintf("%d", userId)).Bytes()
-	if err == nil {
-		errMarshal := json.Unmarshal(data, &shoesRedis)
-		if errMarshal != nil {
-			return nil, fmt.Errorf("failed to unmarshal articles: %w", err)
-		}
-
-		return &shoesRedis, nil
-	} else if err != nil && !errors.Is(err, redis.Nil) {
-		return nil, fmt.Errorf("failed to get articles from Redis: %w", err)
-	}
 
 	shoes, err := s.ShoeProv.GetShoes(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-
-	dataSet, err := json.Marshal(shoes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal articles: %w", err)
-	}
-
-	s.cache.Set(ctx, fmt.Sprintf("%d", userId), dataSet, 10*time.Minute)
 
 	return shoes, nil
 }

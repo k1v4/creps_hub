@@ -71,7 +71,7 @@ func (r *ReleaseUseCase) GetRelease(ctx context.Context, id int) (entity.Release
 		return entity.Release{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	statusCmd := r.cache.Set(ctx, fmt.Sprintf("%d", id), &release, 1*time.Hour)
+	statusCmd := r.cache.Set(ctx, fmt.Sprintf("%d", id), &release, 1*time.Minute)
 	if statusCmd.Err() != nil {
 		return entity.Release{}, fmt.Errorf("%s: %w", op, statusCmd.Err())
 	}

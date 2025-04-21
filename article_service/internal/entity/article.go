@@ -20,7 +20,7 @@ type ArticleUser struct {
 	Name            string    `json:"name"`
 	Text            string    `json:"text"`
 	ImageUrl        string    `json:"image_url"`
-	AuthorUsername  string    `json:"username"`
+	//AuthorUsername  string    `json:"username"`
 }
 
 func (o *Article) MarshalBinary() ([]byte, error) {

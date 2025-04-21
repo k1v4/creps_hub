@@ -60,10 +60,12 @@ func main() {
 	if err != nil {
 		articleLogger.Error(ctx, "redis client init fail")
 	}
-	
+
 	authUseCase := usecase.NewArticleUseCase(authRepo, client, clientRedis)
 
 	handler := echo.New()
+
+	articleLogger.Info(ctx, fmt.Sprintf("server starting on port:%d", cfg.RestServerPort))
 
 	v1.NewRouter(handler, articleLogger, authUseCase)
 

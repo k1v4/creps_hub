@@ -11,7 +11,7 @@ CREATE TABLE "users" (
                          "id" serial PRIMARY KEY,
                          "email" varchar(50) UNIQUE,
                          "password" text,
-                         "username" varchar(50) UNIQUE,
+                         "username" varchar(50) UNIQUE NOT NULL,
                          "name" text,
                          "surname" text,
                          "access_id" integer DEFAULT 1
@@ -39,11 +39,10 @@ CREATE TABLE "access_levels" (
 );
 
 ALTER TABLE "users" ADD FOREIGN KEY ("access_id") REFERENCES "access_levels" ("id");
-
 ALTER TABLE "articles" ADD FOREIGN KEY ("author_id") REFERENCES "users" ("id");
-
 ALTER TABLE "shoes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
+INSERT INTO "users"(email, password, username) VALUES ('deleted@mail.ru', '1111111111', 'deleted');
 
 INSERT INTO "access_levels"(level_name) VALUES ('user');
 INSERT INTO "access_levels"(level_name) VALUES ('admin');

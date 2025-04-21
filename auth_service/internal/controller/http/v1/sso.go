@@ -3,11 +3,10 @@ package v1
 import (
 	"auth_service/internal/entity"
 	"auth_service/internal/usecase"
-	"auth_service/pkg/jwtpkg"
+	jwtPkg "auth_service/pkg/jwtpkg"
 	"auth_service/pkg/logger"
 	"errors"
 	"fmt"
-	"github.com/k1v4/avito_shop/pkg/jwtPkg"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -20,19 +19,19 @@ type containerRoutes struct {
 func newSsoRoutes(handler *echo.Group, t usecase.ISsoService, l logger.Logger) {
 	r := &containerRoutes{t, l}
 
-	// POST /api/login
+	// POST /api/v1/login
 	handler.POST("/login", r.Auth)
 
-	// GET /api/buy/{item}
+	// POST /api/v1/register
 	handler.POST("/register", r.Register)
 
-	// POST /api/sendCoin"
+	// PUT /api/v1/users
 	handler.PUT("/users", r.UpdateUserInfo)
 
-	// GET  /api/info
+	// DELETE  /api/v1/users
 	handler.DELETE("/users", r.DeleteAccount)
 
-	// POST /api/refresh
+	// POST /api/v1/refresh
 	handler.POST("/refresh", r.RefreshToken)
 }
 
@@ -98,6 +97,18 @@ func (r *containerRoutes) Register(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, errors.New("password must be equal or longer than 10"))
 	}
 
+	if len([]rune(u.Email)) == 0 {
+		errorResponse(c, http.StatusBadRequest, "email is required")
+
+		return fmt.Errorf("%s: %w", op, errors.New("email is required"))
+	}
+
+	if len([]rune(u.Username)) == 0 {
+		errorResponse(c, http.StatusBadRequest, "username is required")
+
+		return fmt.Errorf("%s: %w", op, errors.New("username is required"))
+	}
+
 	register, err := r.t.Register(ctx, u.Email, u.Password, u.Username)
 	if err != nil {
 		if errors.Is(err, usecase.ErrUserExist) {
@@ -121,7 +132,7 @@ func (r *containerRoutes) UpdateUserInfo(c echo.Context) error {
 	const op = "controller.UpdateUserInfo"
 
 	// достаём access token
-	token := jwtpkg.ExtractToken(c)
+	token := jwtPkg.ExtractToken(c)
 	if token == "" {
 		errorResponse(c, http.StatusUnauthorized, "token is required")
 
@@ -173,7 +184,7 @@ func (r *containerRoutes) DeleteAccount(c echo.Context) error {
 	const op = "controller.DeleteAccount"
 
 	// достаём access token
-	token := jwtpkg.ExtractToken(c)
+	token := jwtPkg.ExtractToken(c)
 	if token == "" {
 		errorResponse(c, http.StatusBadRequest, "bad request")
 
@@ -205,7 +216,7 @@ func (r *containerRoutes) DeleteAccount(c echo.Context) error {
 func (r *containerRoutes) RefreshToken(c echo.Context) error {
 	const op = "controller.RefreshToken"
 
-	refreshTokenOld := jwtpkg.ExtractToken(c)
+	refreshTokenOld := jwtPkg.ExtractToken(c)
 	ctx := c.Request().Context()
 
 	accessToken, refreshToken, err := r.t.RefreshToken(ctx, refreshTokenOld)

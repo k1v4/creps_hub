@@ -73,10 +73,8 @@ func (a *ArticleRepository) FindAllArticle(ctx context.Context, limit, offset ui
 		"articles.name AS article_name",
 		"articles.text",
 		"articles.image_url",
-		"users.username",
 	).
 		From("articles").
-		Join("users ON articles.author_id = users.id").
 		OrderBy("articles.publication_date DESC").
 		Limit(limit).
 		Offset(offset).
@@ -93,7 +91,7 @@ func (a *ArticleRepository) FindAllArticle(ctx context.Context, limit, offset ui
 	var articles []entity.ArticleUser
 	for rows.Next() {
 		var article entity.ArticleUser
-		err = rows.Scan(&article.ID, &article.PublicationDate, &article.Name, &article.Text, &article.ImageUrl, &article.AuthorUsername)
+		err = rows.Scan(&article.ID, &article.PublicationDate, &article.Name, &article.Text, &article.ImageUrl)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}

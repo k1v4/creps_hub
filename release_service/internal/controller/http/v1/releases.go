@@ -204,6 +204,12 @@ func (r *releasesRoutes) addRelease(c echo.Context) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if len([]rune(u.Name)) == 0 {
+		errorResponse(c, http.StatusBadRequest, "name is required")
+
+		return fmt.Errorf("%s: %s", op, "name is required")
+	}
+
 	layout := "2006-01-02"
 
 	date, err := time.Parse(layout, u.ReleaseDate)
