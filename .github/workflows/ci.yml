@@ -32,21 +32,21 @@ jobs:
       - name: Create .env file
         run: |
           cat <<EOT > .env
-          echo "GRPC_SHOE_PORT=50052" > .env
-          echo "REST_SHOE_PORT=8081" >> .env
-          echo "REST_AUTH_PORT=8080" >> .env
-          echo "REST_ARTICLE_PORT=8082" >> .env
-          echo "REST_RELEASE_PORT=8083" >> .env
-          echo "GRPC_UPLOADER_PORT=50053" >> .env
-          echo "POSTGRES_USER=test" >> .env
-          echo "POSTGRES_PASSWORD=123" >> .env
-          echo "POSTGRES_DB=test" >> .env
-          echo "POSTGRES_HOST=postgres" >> .env
-          echo "POSTGRES_PORT=5432" >> .env
-          echo "PG_POOL_MAX=4" >> .env
-          echo "TOKEN_TTL=1h" >> .env
-          echo "REFRESH_TOKEN_TTL=24h" >> .env
-          echo "REDIS_PORT=6379" >> .env
+          GRPC_SHOE_PORT=50052
+          REST_SHOE_PORT=8081
+          REST_AUTH_PORT=8080
+          REST_ARTICLE_PORT=8082
+          REST_RELEASE_PORT=8083
+          GRPC_UPLOADER_PORT=50053
+          POSTGRES_USER=test
+          POSTGRES_PASSWORD=123
+          POSTGRES_DB=test
+          POSTGRES_HOST=postgres
+          POSTGRES_PORT=5432
+          PG_POOL_MAX=4
+          TOKEN_TTL=1h
+          REFRESH_TOKEN_TTL=24h
+          REDIS_PORT=6379
           EOT
 
       - name: Build and start services
